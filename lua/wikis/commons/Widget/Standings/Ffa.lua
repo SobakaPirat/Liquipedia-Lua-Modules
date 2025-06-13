@@ -130,7 +130,11 @@ function StandingsFfaWidget:render()
 									if roundStatus == '' then
 										text = opponent.pointsChangeFromPreviousRound
 									else
-										text = STATUS_TO_DISPLAY[roundStatus]
+										text = roundStatus
+										if string.sub(text, -1) == "-" then
+											text = string.sub(text, 1, string.len(text) - 1)
+											return HtmlWidgets.Td{children = text, css = {['text-decoration'] = 'line-through;', ['text-align'] = 'center'}}
+										end
 									end
 								end
 								return HtmlWidgets.Td{children = text, css = {['text-align'] = 'center'}}
