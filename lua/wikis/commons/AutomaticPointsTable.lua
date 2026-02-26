@@ -184,9 +184,14 @@ function AutomaticPointsTable:parseOpponents(args, tournaments)
 			)
 		end)
 
-		parsedOpponent.totalPoints = Array.reduce(parsedOpponent.results, function (aggregate, result)
+		local limitResults = tonumber(args.limitResults)
+		if limitResults then
+			parsedOpponent.totalPoints = self:sumBestResults(parsedOpponent.results, limitResults)
+		else
+			parsedOpponent.totalPoints = Array.reduce(parsedOpponent.results, function (aggregate, result)
 			return aggregate + (result.amount or 0) - (result.deduction or 0)
-		end, 0)
+			end, 0)
+		end
 
 		parsedOpponent.qualified = Array.any(parsedOpponent.results, Operator.property('qualified'))
 
@@ -276,6 +281,22 @@ function AutomaticPointsTable:queryPlacement(aliases, opponent, tournament)
 			type = POINTS_TYPE.SECURED,
 		}
 	end
+end
+
+---@param prizePoints {amount: number, type: string}
+---@param limitResults number
+function AutomaticPointsTable:sumBestResults(prizePoints, limitResults)
+	local pointsArray = Array.map(prizePoints, function(result)
+		return (result.amount or 0) - (result.deduction or 0)
+	end)
+	table.sort(pointsArray, function(a, b)
+		return a > b
+	end)
+	local slicePoints = Array.sub(pointsArray, 1, limitResults)
+	local totalPoints = Array.reduce(slicePoints, function(aggregate, points)
+		return aggregate + points
+	end)
+	return totalPoints
 end
 
 ---@param placement {prizePoints: number?, securedPoints: number?}
