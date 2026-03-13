@@ -21,29 +21,18 @@ local EXPLAINATION_LINK = 'Control settings'
 local LIST_LINK = 'List of player control settings'
 
 ---@class ControlsSettingsTableWidget: Widget
----@operator call(table, ColumnConfig[]): ControlsSettingsTableWidget
----@field props {
----	controller: string?,
----	ref: string?,
----	date: string?,
----	accelerate: string?,
----	brake: string?,
----	steering: string?,
----	camera_change: string?,
----	show_hide_opponents: string?,
----	show_hide_interface: string?,
----}
+---@field args {[string]: string?}
 ---@field columnConfig ColumnConfig[]
 local ControlsSettingsTableWidget = Class.new(Widget,
-	function(self, props, columnConfig)
+	function(self, args, columnConfig)
+		self.args = args
 		self.columnConfig = columnConfig
-		self.props = props
 	end
 )
 
 ---@return Widget?
 function ControlsSettingsTableWidget:render()
-	local args = self.props
+	local args = self.args
 	local header = self:renderHeader(args)
 	local footer = self:renderFooter(args)
 	local visibleColumns = self:getVisibleColumns(args)
