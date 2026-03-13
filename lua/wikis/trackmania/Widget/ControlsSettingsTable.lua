@@ -110,11 +110,7 @@ end
 function ControlsSettingsTableWidget:renderTable(args, header, footer, visibleColumns)
 	return HtmlWidgets.Table{
 		classes = {'wikitable', 'rl-responsive-table'},
-		css = {
-			textAlign = 'center',
-			tableLayout = 'auto',
-			width = '100%',
-		},
+		css = {['table-layout'] = 'auto'},
 		children = WidgetUtil.collect(
 			HtmlWidgets.Tr{children = {
 				HtmlWidgets.Th{
