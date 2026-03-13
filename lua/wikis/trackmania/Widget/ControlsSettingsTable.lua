@@ -43,57 +43,46 @@ local function getImageName(device, key)
 	return Template.safeExpand(mw.getCurrentFrame(), 'Button translation', {(device or ''):lower(), (key or ''):lower()})
 end
 
----@param displayName string
----@param argName string?
+---@class ColumnConfig
+---@field name string
+---@field title string
+
+---@type ColumnConfig[]
+local COLUMN_CONFIG = {
+	{name = 'Accelerate', title = 'Accelerate'},
+	{name = 'Brake', title = 'Brake'},
+	{name = 'Steering', title = 'Steering'},
+	{name = 'Camera_Change', title = 'Camera Change'},
+	{name = 'Show_Hide_Opponents', title = 'Show/Hide Opponents'},
+	{name = 'Show_Hide_Interface', title = 'Show/Hide Interface'},
+}
+
+---@param config ColumnConfig
 ---@return {title: string, value: fun(data: table): string?}
-local function basicColumn(displayName, argName)
-	local name = argName or displayName
+local function makeColumn(config)
 	return {
-		title = displayName,
+		title = config.title,
 		value = function(data)
+			local key = config.name:lower()
 			if data.controller and data.controller:lower() == 'kbm' then
-				return data[name:lower()] and '<kbd>'.. (data[name:lower()]) ..'</kbd>' or nil
+				return data[key] and '<kbd>' .. data[key] .. '</kbd>' or nil
 			end
-			return '[[File:'.. getImageName(data.controller, data[name:lower()]) ..'.svg|'.. name ..'|link=]]'
+			return '[[File:' .. getImageName(data.controller, data[key]) .. '.svg|' .. config.name .. '|link=]]'
 		end
 	}
 end
 
 ---@type {title: string, value: fun(data: table): string?}[]
-local COLUMNS = {
-	basicColumn('Accelerate'),
-	basicColumn('Brake'),
-	basicColumn('Steering'),
-	basicColumn('Camera Change', 'camera_change'),
-	basicColumn('Show/Hide Opponents', 'show_hide_opponents'),
-	basicColumn('Show/Hide Interface', 'show_hide_interface'),
-}
-
----@param name string
----@return fun(data: table): string, string?
-local function basicStorage(name)
-	return function(data)
-		return name:lower(), data[name:lower()]
-	end
-end
-
----@type fun(data: table): (string, string?)[]
-local LPDB_STORAGE = {
-	basicStorage('Accelerate'),
-	basicStorage('Brake'),
-	basicStorage('Steering'),
-	basicStorage('Camera_Change'),
-	basicStorage('Show_Hide_Opponents'),
-	basicStorage('Show_Hide_Interface'),
-}
+local COLUMNS = Array.map(COLUMN_CONFIG, makeColumn)
 
 ---@param data table
 ---@return table<string, string?>
 local function generateLpdbExtradata(data)
-	return Table.map(LPDB_STORAGE, function(field)
-		local key, val = field(data)
-		return key, val
-	end)
+    local result = {}
+    for _, config in ipairs(COLUMN_CONFIG) do
+        result[config.name:lower()] = data[config.name:lower()]
+    end
+    return result
 end
 
 ---@return Widget?
