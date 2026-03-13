@@ -149,7 +149,7 @@ local function renderTable(args, header, footer, visibleColumns)
 				HtmlWidgets.Th{
 					attributes = {colspan = #COLUMNS},
 					css = {
-						fontSize = '85%',
+						['font-size'] = '85%',
 						padding = '2px',
 					},
 					children = footer
