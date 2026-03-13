@@ -85,10 +85,9 @@ local function generateLpdbExtradata(data)
     return result
 end
 
----@return Widget?
-function ControlsSettingsTableWidget:render()
-	local args = self.props
-
+---@param args table
+---@return string
+local function renderHeader(args)
 	local header = Page.exists(EXPLAINATION_LINK) and '[['.. EXPLAINATION_LINK ..']] ' or EXPLAINATION_LINK..' '
 
 	if args.ref then
@@ -98,57 +97,79 @@ function ControlsSettingsTableWidget:render()
 			header = header .. mw.getCurrentFrame():callParserFunction{ name = '#tag', args = { 'ref', args['ref'] } }
 		end
 	end
-	header = header .. ' <small>([['.. LIST_LINK ..'|list of]])</small>'
+	return header .. ' <small>([['.. LIST_LINK ..'|list of]])</small>'
+end
 
-	local footer = ''
+---@param args table
+---@return string
+local function renderFooter(args)
 	if args.date then
 		local year, month, day = (args.date):match('(%d+)-(%d+)-(%d+)')
 		local dayAgo = math.floor((os.time() - os.time{year=year, month=month, day=day}) / 86400)
-		footer = footer .. '<i>Last updated on '.. args.date ..' (' .. dayAgo ..' days ago).</i>'
-	else
-		footer = footer .. '<span class="cinnabar-text"><i>No date of last update specified!</i></span>'
+		return '<i>Last updated on '.. args.date ..' (' .. dayAgo ..' days ago).</i>'
 	end
+	return '<span class="cinnabar-text"><i>No date of last update specified!</i></span>'
+end
 
-	local visibleColumns = Array.filter(COLUMNS, function(column)
+---@param args table
+---@return {title: string, value: fun(data: table): string?}[]
+local function getVisibleColumns(args)
+	return Array.filter(COLUMNS, function(column)
 		return String.isNotEmpty(column.value(args))
 	end)
+end
+
+---@param args table
+---@param header string
+---@param footer string
+---@param visibleColumns {title: string, value: fun(data: table): string?}[]
+---@return Widget
+local function renderTable(args, header, footer, visibleColumns)
+	return HtmlWidgets.Table{
+		classes = {'wikitable', 'rl-responsive-table'},
+		css = {
+			textAlign = 'center',
+			tableLayout = 'auto',
+			width = '100%',
+		},
+		children = WidgetUtil.collect(
+			HtmlWidgets.Tr{children = {
+				HtmlWidgets.Th{
+					attributes = {colspan = #COLUMNS},
+					children = header
+				}
+			}},
+			HtmlWidgets.Tr{children = Array.map(visibleColumns, function(column)
+				return HtmlWidgets.Th{children = column.title}
+			end)},
+			HtmlWidgets.Tr{children = Array.map(visibleColumns, function(column)
+				return HtmlWidgets.Td{children = column.value(args)}
+			end)},
+			HtmlWidgets.Tr{children = {
+				HtmlWidgets.Th{
+					attributes = {colspan = #COLUMNS},
+					css = {
+						fontSize = '85%',
+						padding = '2px',
+					},
+					children = footer
+				}
+			}}
+		)
+	}
+end
+
+---@return Widget?
+function ControlsSettingsTableWidget:render()
+	local args = self.props
+
+	local header = renderHeader(args)
+	local footer = renderFooter(args)
+	local visibleColumns = getVisibleColumns(args)
 
 	return HtmlWidgets.Div{
 		classes = {'table-responsive'},
-		children = {
-			HtmlWidgets.Table{
-				classes = {'wikitable', 'rl-responsive-table'},
-				css = {
-					textAlign = 'center',
-					tableLayout = 'auto',
-					width = '100%',
-				},
-				children = WidgetUtil.collect(
-					HtmlWidgets.Tr{children = {
-						HtmlWidgets.Th{
-							attributes = {colspan = #COLUMNS},
-							children = header
-						}
-					}},
-					HtmlWidgets.Tr{children = Array.map(visibleColumns, function(column)
-						return HtmlWidgets.Th{children = column.title}
-					end)},
-					HtmlWidgets.Tr{children = Array.map(visibleColumns, function(column)
-						return HtmlWidgets.Td{children = column.value(args)}
-					end)},
-					HtmlWidgets.Tr{children = {
-						HtmlWidgets.Th{
-							attributes = {colspan = #COLUMNS},
-							css = {
-								fontSize = '85%',
-								padding = '2px',
-							},
-							children = footer
-						}
-					}}
-				)
-			}
-		}
+		children = {renderTable(args, header, footer, visibleColumns)}
 	}
 end
 
