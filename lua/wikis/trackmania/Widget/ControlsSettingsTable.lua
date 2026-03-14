@@ -18,7 +18,6 @@ local HtmlWidgets = Lua.import('Module:Widget/Html/All')
 local WidgetUtil = Lua.import('Module:Widget/Util')
 
 local EXPLAINATION_LINK = 'Control settings'
-local LIST_LINK = 'List of player control settings'
 
 ---@class ControlsSettingsTableWidget: Widget
 ---@field args {[string]: string?}
@@ -73,7 +72,7 @@ function ControlsSettingsTableWidget:renderHeader(args)
 	if args.ref then
 		header = header .. mw.getCurrentFrame():callParserFunction{ name = '#tag', args = { 'ref', args['ref'] } }
 	end
-	return header .. ' <small>([['.. LIST_LINK ..'|list of]])</small>'
+	return header .. " <small>([[List of player control settings|list of]])</small>'''"
 end
 
 ---@param args table
