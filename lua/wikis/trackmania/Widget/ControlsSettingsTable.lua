@@ -22,10 +22,12 @@ local SETTINGS_LINK = 'Control settings'
 ---@class ControlsSettingsTableWidget: Widget
 ---@field args {[string]: string?}
 ---@field columnConfig ColumnConfig[]
+---@field frame table
 local ControlsSettingsTableWidget = Class.new(Widget,
-	function(self, args, columnConfig)
+	function(self, args, columnConfig, frame)
 		self.args = args
 		self.columnConfig = columnConfig
+		self.frame = frame or mw.getCurrentFrame()
 	end
 )
 
@@ -45,10 +47,12 @@ end
 ---@param args table
 ---@return string
 function ControlsSettingsTableWidget:renderHeader(args)
+	local frame = self.frame
 	local header = Page.exists(SETTINGS_LINK) and '[['.. SETTINGS_LINK ..']] ' or SETTINGS_LINK..' '
-
-	if args.ref then
-		header = header .. mw.getCurrentFrame():callParserFunction{ name = '#tag', args = { 'ref', args['ref'] } }
+	if args.ref == 'insidesource' then
+		header = header .. frame:callParserFunction{ name = '#tag', args = { 'ref', Template.safeExpand(frame, 'inside source') } }
+	elseif args.ref then
+		header = header .. frame:callParserFunction{ name = '#tag', args = { 'ref', args['ref'] } }
 	end
 	return header .. " <small>([[List of player control settings|list of]])</small>'''"
 end
@@ -94,7 +98,7 @@ end
 ---@param key string?
 ---@return string?
 function ControlsSettingsTableWidget:getImageName(device, key)
-	return Template.safeExpand(mw.getCurrentFrame(), 'Button translation', {(device or ''):lower(), (key or ''):lower()})
+	return Template.safeExpand(self.frame, 'Button translation', {(device or ''):lower(), (key or ''):lower()})
 end
 
 ---@param args table

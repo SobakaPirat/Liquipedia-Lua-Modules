@@ -30,7 +30,7 @@ local COLUMN_CONFIG = {
 
 local ControlsSettingsTable = Class.new(
 	function(self, frame)
-		self.frame = frame
+		self.frame = frame or mw.getCurrentFrame()
 		self.args = Arguments.getArgs(frame)
 		self.title = mw.title.getCurrentTitle().text
 	end
