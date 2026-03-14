@@ -45,12 +45,12 @@ function ControlsSettingsTable.create(frame)
 	return widget:tryMake()
 end
 
----@param data table
+---@param args table
 ---@return table<string, string?>
-function ControlsSettingsTable:generateLpdbExtradata(data)
+function ControlsSettingsTable:generateLpdbExtradata(args)
 	local result = {}
 	for _, config in ipairs(COLUMN_CONFIG) do
-		result[config.name:lower()] = data[config.name:lower()]
+		result[config.name:lower()] = args[config.name:lower()]
 	end
 	return result
 end
