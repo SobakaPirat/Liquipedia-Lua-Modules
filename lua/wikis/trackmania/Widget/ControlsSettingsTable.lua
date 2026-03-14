@@ -17,7 +17,7 @@ local Widget = Lua.import('Module:Widget')
 local HtmlWidgets = Lua.import('Module:Widget/Html/All')
 local WidgetUtil = Lua.import('Module:Widget/Util')
 
-local EXPLAINATION_LINK = 'Control settings'
+local SETTINGS_LINK = 'Control settings'
 
 ---@class ControlsSettingsTableWidget: Widget
 ---@field args {[string]: string?}
@@ -67,7 +67,7 @@ end
 ---@param args table
 ---@return string
 function ControlsSettingsTableWidget:renderHeader(args)
-	local header = Page.exists(EXPLAINATION_LINK) and '[['.. EXPLAINATION_LINK ..']] ' or EXPLAINATION_LINK..' '
+	local header = Page.exists(SETTINGS_LINK) and '[['.. SETTINGS_LINK ..']] ' or SETTINGS_LINK..' '
 
 	if args.ref then
 		header = header .. mw.getCurrentFrame():callParserFunction{ name = '#tag', args = { 'ref', args['ref'] } }
