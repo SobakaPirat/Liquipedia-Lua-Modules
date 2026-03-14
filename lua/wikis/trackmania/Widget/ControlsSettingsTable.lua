@@ -104,7 +104,7 @@ end
 ---@return Widget
 function ControlsSettingsTableWidget:renderTable(args, header, footer, visibleColumns)
 	return HtmlWidgets.Table{
-		classes = {'wikitable', 'rl-responsive-table'},
+		classes = {'wikitable', 'controls-responsive-table'},
 		css = {['table-layout'] = 'auto'},
 		children = WidgetUtil.collect(
 			HtmlWidgets.Tr{children = {
