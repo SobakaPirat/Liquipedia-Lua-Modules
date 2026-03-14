@@ -71,11 +71,7 @@ function ControlsSettingsTableWidget:renderHeader(args)
 	local header = Page.exists(EXPLAINATION_LINK) and '[['.. EXPLAINATION_LINK ..']] ' or EXPLAINATION_LINK..' '
 
 	if args.ref then
-		if args.ref:lower() == 'player' then
-			header = header .. '[[category:Player Submitted Hardware]] <sup><i><b><small><small><abbr title="The player has submitted their own hardware information to Liquipedia">Player Submitted</abbr></small></small></b></i></sup>'
-		else
-			header = header .. mw.getCurrentFrame():callParserFunction{ name = '#tag', args = { 'ref', args['ref'] } }
-		end
+		header = header .. mw.getCurrentFrame():callParserFunction{ name = '#tag', args = { 'ref', args['ref'] } }
 	end
 	return header .. ' <small>([['.. LIST_LINK ..'|list of]])</small>'
 end
