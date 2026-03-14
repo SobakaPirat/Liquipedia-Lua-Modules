@@ -112,13 +112,16 @@ function ControlsSettingsTableWidget:renderTable(args, header, footer, visibleCo
 				HtmlWidgets.Th{
 					attributes = {colspan = #self.columnConfig},
 					children = header
-				}
+					}
 			}},
 			HtmlWidgets.Tr{children = Array.map(visibleColumns, function(column)
 				return HtmlWidgets.Th{children = column.title}
 			end)},
 			HtmlWidgets.Tr{children = Array.map(visibleColumns, function(column)
-				return HtmlWidgets.Td{children = column.value(args)}
+				return HtmlWidgets.Td{
+					attributes = {['data-label'] = column.title},
+					children = column.value(args)
+					}
 			end)},
 			HtmlWidgets.Tr{children = {
 				HtmlWidgets.Th{
