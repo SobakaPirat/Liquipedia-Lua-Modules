@@ -42,28 +42,6 @@ function ControlsSettingsTableWidget:render()
 	}
 end
 
----@param device string?
----@param key string?
----@return string?
-function ControlsSettingsTableWidget:getImageName(device, key)
-	return Template.safeExpand(mw.getCurrentFrame(), 'Button translation', {(device or ''):lower(), (key or ''):lower()})
-end
-
----@param config ColumnConfig
----@return {title: string, value: fun(data: table): string?}
-function ControlsSettingsTableWidget:makeColumn(config)
-	return {
-		title = config.title,
-		value = function(data)
-			local key = config.name:lower()
-			if data.controller and data.controller:lower() == 'kbm' then
-				return data[key] and '<kbd>' .. data[key] .. '</kbd>' or nil
-			end
-			return '[[File:' .. self:getImageName(data.controller, data[key]) .. '.svg|' .. config.name .. '|link=]]'
-		end
-	}
-end
-
 ---@param args table
 ---@return string
 function ControlsSettingsTableWidget:renderHeader(args)
@@ -95,6 +73,28 @@ function ControlsSettingsTableWidget:getVisibleColumns(args)
 	return Array.filter(columns, function(column)
 		return String.isNotEmpty(column.value(args))
 	end)
+end
+
+---@param config ColumnConfig
+---@return {title: string, value: fun(data: table): string?}
+function ControlsSettingsTableWidget:makeColumn(config)
+	return {
+		title = config.title,
+		value = function(data)
+			local key = config.name:lower()
+			if data.controller and data.controller:lower() == 'kbm' then
+				return data[key] and '<kbd>' .. data[key] .. '</kbd>' or nil
+			end
+			return '[[File:' .. self:getImageName(data.controller, data[key]) .. '.svg|' .. config.name .. '|link=]]'
+		end
+	}
+end
+
+---@param device string?
+---@param key string?
+---@return string?
+function ControlsSettingsTableWidget:getImageName(device, key)
+	return Template.safeExpand(mw.getCurrentFrame(), 'Button translation', {(device or ''):lower(), (key or ''):lower()})
 end
 
 ---@param args table
