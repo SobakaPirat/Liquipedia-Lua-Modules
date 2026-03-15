@@ -14,32 +14,19 @@ local ControlsSettingsTableWidget = Lua.import('Module:Widget/ControlsSettingsTa
 
 --local CONTROLS_SETTINGS_TABLE = Info.config.ControlsSettingsTable
 
----@class ColumnConfig
----@field name string
----@field title string
-
----@type ColumnConfig[]
-local COLUMN_CONFIG = {
-	{name = 'Accelerate', title = 'Accelerate'},
-	{name = 'Brake', title = 'Brake'},
-	{name = 'Steering', title = 'Steering'},
-	{name = 'Camera_Change', title = 'Camera Change'},
-	{name = 'Show_Hide_Opponents', title = 'Show/Hide Opponents'},
-	{name = 'Show_Hide_Interface', title = 'Show/Hide Interface'},
-}
-
 local ControlsSettingsTable = Class.new(
-	function(self, frame)
+	function(self, frame, columnConfig)
 		self.frame = frame or mw.getCurrentFrame()
 		self.args = Arguments.getArgs(frame)
+		self.columnConfig = columnConfig
 		self.title = mw.title.getCurrentTitle().text
 	end
 )
 
-function ControlsSettingsTable.create(frame)
-	local instance = ControlsSettingsTable(frame)
+function ControlsSettingsTable.create(frame, columnConfig)
+	local instance = ControlsSettingsTable(frame, columnConfig)
 	local args = instance.args
-	local widget = ControlsSettingsTableWidget(args, COLUMN_CONFIG)
+	local widget = ControlsSettingsTableWidget(args, columnConfig)
 	instance:saveToLpdb(args, widget)
 
 	return widget:tryMake()
@@ -49,7 +36,7 @@ end
 ---@return table<string, string?>
 function ControlsSettingsTable:generateLpdbExtradata(args)
 	local result = {}
-	for _, config in ipairs(COLUMN_CONFIG) do
+	for _, config in ipairs(self.columnConfig) do
 		result[config.name:lower()] = args[config.name:lower()]
 	end
 	return result
