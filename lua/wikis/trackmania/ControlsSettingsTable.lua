@@ -8,6 +8,7 @@ local Lua = require('Module:Lua')
 
 local Arguments = Lua.import('Module:Arguments')
 local Class = Lua.import('Module:Class')
+
 local ControlsSettingsTableWidget = Lua.import('Module:Widget/ControlsSettingsTable')
 
 local ControlsSettingsTable = Class.new()
