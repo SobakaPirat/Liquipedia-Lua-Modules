@@ -84,6 +84,22 @@ function ControlsSettingsTableWidget:makeColumn(config)
 	return {
 		title = config.title,
 		value = function(data)
+			if config.keys then
+				local values = {}
+				for _, item in ipairs(config.keys) do
+					if type(item) == 'table' then
+						local lowerKey = item.key:lower()
+						if data.controller and data.controller:lower() == 'kbm' then
+							table.insert(values, data[lowerKey] and '<kbd>' .. data[lowerKey] .. '</kbd>' or '')
+						else
+							table.insert(values, '[[File:' .. self:getImageName(data.controller, data[lowerKey]) .. '.svg|' .. item.key .. '|link=]]')
+						end
+					else
+						table.insert(values, item)
+					end
+				end
+				return table.concat(values)
+			end
 			local key = config.key:lower()
 			if data.controller and data.controller:lower() == 'kbm' then
 				return data[key] and '<kbd>' .. data[key] .. '</kbd>' or nil
