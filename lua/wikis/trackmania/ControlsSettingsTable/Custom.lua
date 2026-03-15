@@ -13,6 +13,9 @@ local ControlsSettingsTable = Lua.import('Module:ControlsSettingsTable')
 
 local CustomControlsSettingsTable = Class.new(ControlsSettingsTable)
 
+---@type string[]
+local LPDB_CONFIG = {'Accelerate', 'Brake', 'Steering', 'Camera_Change', 'Show_Hide_Opponents', 'Show_Hide_Interface'}
+
 ---@class ColumnConfig
 ---@field key string
 ---@field title string
@@ -29,7 +32,7 @@ local COLUMN_CONFIG = {
 }
 
 function CustomControlsSettingsTable.create(frame)
-	return ControlsSettingsTable.create(COLUMN_CONFIG, frame)
+	return ControlsSettingsTable.create(LPDB_CONFIG, COLUMN_CONFIG, frame)
 end
 
 return CustomControlsSettingsTable

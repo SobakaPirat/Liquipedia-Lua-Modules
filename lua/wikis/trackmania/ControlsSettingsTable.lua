@@ -12,16 +12,16 @@ local ControlsSettingsTableWidget = Lua.import('Module:Widget/ControlsSettingsTa
 
 local ControlsSettingsTable = Class.new()
 
-function ControlsSettingsTable.create(columnConfig, frame)
+function ControlsSettingsTable.create(lpdbConfig, columnConfig, frame)
 	local args = Arguments.getArgs(frame)
 	local widget = ControlsSettingsTableWidget(columnConfig, args)
-	ControlsSettingsTable.saveToLpdb(columnConfig, args)
+	ControlsSettingsTable.saveToLpdb(lpdbConfig, args)
 	return widget:tryMake()
 end
 
-function ControlsSettingsTable.saveToLpdb(columnConfig, args)
+function ControlsSettingsTable.saveToLpdb(lpdbConfig, args)
 	local title = mw.title.getCurrentTitle().text
-	local extradata = ControlsSettingsTable.generateLpdbExtradata(columnConfig, args)
+	local extradata = ControlsSettingsTable.generateLpdbExtradata(lpdbConfig, args)
 	mw.ext.LiquipediaDB.lpdb_settings(title, {
 		name = 'movement',
 		reference = args.ref,
@@ -31,10 +31,10 @@ function ControlsSettingsTable.saveToLpdb(columnConfig, args)
 	})
 end
 
-function ControlsSettingsTable.generateLpdbExtradata(columnConfig, args)
+function ControlsSettingsTable.generateLpdbExtradata(lpdbConfig, args)
 	local result = {}
-	for _, config in ipairs(columnConfig) do
-		result[config.key:lower()] = args[config.key:lower()]
+	for _, key in ipairs(lpdbConfig) do
+		result[key:lower()] = args[key:lower()]
 	end
 	return result
 end
