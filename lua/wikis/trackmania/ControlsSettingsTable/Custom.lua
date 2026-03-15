@@ -27,7 +27,7 @@ local COLUMN_CONFIG = {
 }
 
 function CustomControlsSettingsTable.create(frame)
-	return ControlsSettingsTable.create(frame, COLUMN_CONFIG)
+	return ControlsSettingsTable.create(COLUMN_CONFIG, frame)
 end
 
 return CustomControlsSettingsTable

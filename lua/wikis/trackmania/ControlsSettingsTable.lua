@@ -10,38 +10,33 @@ local Arguments = Lua.import('Module:Arguments')
 local Class = Lua.import('Module:Class')
 local ControlsSettingsTableWidget = Lua.import('Module:Widget/ControlsSettingsTable')
 
-local ControlsSettingsTable = Class.new(
-	function(self, frame, columnConfig)
-		self.frame = frame or mw.getCurrentFrame()
-		self.args = Arguments.getArgs(frame)
-		self.columnConfig = columnConfig
-		self.title = mw.title.getCurrentTitle().text
-	end
-)
+local ControlsSettingsTable = Class.new()
 
-function ControlsSettingsTable.create(frame, columnConfig)
-	local instance = ControlsSettingsTable(frame, columnConfig)
-	local widget = ControlsSettingsTableWidget(instance.args, columnConfig)
-	instance:saveToLpdb(instance.args)
+function ControlsSettingsTable.create(columnConfig, frame)
+	local args = Arguments.getArgs(frame)
+	local widget = ControlsSettingsTableWidget(columnConfig, args)
+	ControlsSettingsTable.saveToLpdb(columnConfig, args)
 	return widget:tryMake()
 end
 
-function ControlsSettingsTable:generateLpdbExtradata()
-	local result = {}
-	for _, config in ipairs(self.columnConfig) do
-		result[config.name:lower()] = self.args[config.name:lower()]
-	end
-	return result
-end
-
-function ControlsSettingsTable:saveToLpdb(args)
-	mw.ext.LiquipediaDB.lpdb_settings(self.title, {
+function ControlsSettingsTable.saveToLpdb(columnConfig, args)
+	local title = mw.title.getCurrentTitle().text
+	local extradata = ControlsSettingsTable.generateLpdbExtradata(columnConfig, args)
+	mw.ext.LiquipediaDB.lpdb_settings(title, {
 		name = 'movement',
 		reference = args.ref,
 		lastupdated = args.date,
-		gamesettings = mw.ext.LiquipediaDB.lpdb_create_json(self:generateLpdbExtradata()),
+		gamesettings = mw.ext.LiquipediaDB.lpdb_create_json(extradata),
 		type = (args.controller or ''):lower(),
 	})
+end
+
+function ControlsSettingsTable.generateLpdbExtradata(columnConfig, args)
+	local result = {}
+	for _, config in ipairs(columnConfig) do
+		result[config.name:lower()] = args[config.name:lower()]
+	end
+	return result
 end
 
 return ControlsSettingsTable

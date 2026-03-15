@@ -24,23 +24,22 @@ local SETTINGS_LINK = 'Control settings'
 ---@field columnConfig ColumnConfig[]
 ---@field frame table
 local ControlsSettingsTableWidget = Class.new(Widget,
-	function(self, args, columnConfig, frame)
-		self.args = args
+	function(self, columnConfig, args, frame)
 		self.columnConfig = columnConfig
+		self.args = args
 		self.frame = frame or mw.getCurrentFrame()
 	end
 )
 
 ---@return Widget?
 function ControlsSettingsTableWidget:render()
-	local args = self.args
-	local header = self:renderHeader(args)
-	local footer = self:renderFooter(args)
-	local visibleColumns = self:getVisibleColumns(args)
+	local header = self:renderHeader(self.args)
+	local footer = self:renderFooter(self.args)
+	local visibleColumns = self:getVisibleColumns(self.args)
 
 	return HtmlWidgets.Div{
 		classes = {'table-responsive'},
-		children = {self:renderTable(args, header, footer, visibleColumns)}
+		children = {self:renderTable(self.args, header, footer, visibleColumns)}
 	}
 end
 
