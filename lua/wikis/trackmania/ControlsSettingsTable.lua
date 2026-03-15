@@ -34,7 +34,7 @@ end
 function ControlsSettingsTable.generateLpdbExtradata(columnConfig, args)
 	local result = {}
 	for _, config in ipairs(columnConfig) do
-		result[config.name:lower()] = args[config.name:lower()]
+		result[config.key:lower()] = args[config.key:lower()]
 	end
 	return result
 end
