@@ -21,7 +21,7 @@ local SETTINGS_LINK = 'Control settings'
 
 ---@class ControlsSettingsTableWidget: Widget
 ---@field args {[string]: string?}
----@field columnConfig ColumnConfig[]
+---@field columnConfig table
 ---@field frame table
 local ControlsSettingsTableWidget = Class.new(Widget,
 	function(self, columnConfig, args, frame)
@@ -78,7 +78,6 @@ function ControlsSettingsTableWidget:getVisibleColumns(args)
 	end)
 end
 
----@param config ColumnConfig
 ---@return {title: string, value: fun(data: table): string?}
 function ControlsSettingsTableWidget:makeColumn(config)
 	return {
@@ -86,25 +85,36 @@ function ControlsSettingsTableWidget:makeColumn(config)
 		value = function(data)
 			if config.keys then
 				local values = {}
+				local hasValue = false
 				for _, item in ipairs(config.keys) do
 					if type(item) == 'table' then
 						local lowerKey = item.key:lower()
-						if data.controller and data.controller:lower() == 'kbm' then
-							table.insert(values, data[lowerKey] and '<kbd>' .. data[lowerKey] .. '</kbd>' or '')
+						local keyValue = data[lowerKey]
+						if keyValue and String.isNotEmpty(keyValue) then
+							if data.controller and data.controller:lower() == 'kbm' then
+								table.insert(values, '<kbd>' .. keyValue .. '</kbd>')
+							else
+								table.insert(values, '[[File:' .. self:getImageName(data.controller, keyValue) .. '.svg|' .. item.key .. '|link=]]')
+							end
+							hasValue = true
 						else
-							table.insert(values, '[[File:' .. self:getImageName(data.controller, data[lowerKey]) .. '.svg|' .. item.key .. '|link=]]')
+							table.insert(values, '')
 						end
 					else
 						table.insert(values, item)
 					end
 				end
-				return table.concat(values)
+				return hasValue and table.concat(values) or nil
 			end
 			local key = config.key:lower()
-			if data.controller and data.controller:lower() == 'kbm' then
-				return data[key] and '<kbd>' .. data[key] .. '</kbd>' or nil
+			local keyValue = data[key]
+			if not keyValue or not String.isNotEmpty(keyValue) then
+				return nil
 			end
-			return '[[File:' .. self:getImageName(data.controller, data[key]) .. '.svg|' .. config.key .. '|link=]]'
+			if data.controller and data.controller:lower() == 'kbm' then
+				return '<kbd>' .. keyValue .. '</kbd>'
+			end
+			return '[[File:' .. self:getImageName(data.controller, keyValue) .. '.svg|' .. config.key .. '|link=]]'
 		end
 	}
 end
