@@ -88,35 +88,33 @@ function ControlsSettingsTableWidget:makeColumn(config)
 				local hasValue = false
 				for _, item in ipairs(config.keys) do
 					if type(item) == 'table' then
-						local lowerKey = item.key:lower()
-						local keyValue = data[lowerKey]
-						if keyValue and String.isNotEmpty(keyValue) then
-							if data.controller and data.controller:lower() == 'kbm' then
-								table.insert(values, '<kbd>' .. keyValue .. '</kbd>')
-							else
-								table.insert(values, '[[File:' .. self:getImageName(data.controller, keyValue) .. '.svg|' .. item.key .. '|link=]]')
-							end
-							hasValue = true
-						else
-							table.insert(values, '')
-						end
+						local formatted = self:formatKeyValue(item.key, data)
+						table.insert(values, formatted or '')
+						if formatted then hasValue = true end
 					else
 						table.insert(values, item)
 					end
 				end
 				return hasValue and table.concat(values) or nil
+			elseif config.key then
+				return self:formatKeyValue(config.key, data)
 			end
-			local key = config.key:lower()
-			local keyValue = data[key]
-			if not keyValue or not String.isNotEmpty(keyValue) then
-				return nil
-			end
-			if data.controller and data.controller:lower() == 'kbm' then
-				return '<kbd>' .. keyValue .. '</kbd>'
-			end
-			return '[[File:' .. self:getImageName(data.controller, keyValue) .. '.svg|' .. config.key .. '|link=]]'
 		end
 	}
+end
+
+---@param key string
+---@param data table
+---@return string?
+function ControlsSettingsTableWidget:formatKeyValue(key, data)
+	local keyValue = data[key:lower()]
+	if not keyValue or String.isEmpty(keyValue) then
+		return nil
+	end
+	if data.controller and data.controller:lower() == 'kbm' then
+		return '<kbd>' .. keyValue .. '</kbd>'
+	end
+	return '[[File:' .. self:getImageName(data.controller, keyValue) .. '.svg|' .. key .. '|link=]]'
 end
 
 ---@param device string?
