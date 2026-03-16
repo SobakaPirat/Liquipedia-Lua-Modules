@@ -89,7 +89,7 @@ function ControlsSettingsTableWidget:makeColumn(config)
 				for _, item in ipairs(config.keys) do
 					if type(item) == 'table' then
 						local formatted = self:formatKeyValue(item.key, data)
-						table.insert(values, formatted or '')
+						table.insert(values, formatted or '-')
 						if formatted then hasValue = true end
 					else
 						table.insert(values, item)
