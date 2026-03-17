@@ -19,9 +19,12 @@ local WidgetUtil = Lua.import('Module:Widget/Util')
 
 local SETTINGS_LINK = 'Control settings'
 
+---@alias ColumnConfig {key: string, title: string} | {keys: ({key: string} | string)[], title: string}
+---@alias ColumnValue {title: string, value: fun(data: {[string]: string?}): string?}
+
 ---@class ControlsSettingsTableWidget: Widget
 ---@field args {[string]: string?}
----@field columnConfig table
+---@field columnConfig ColumnConfig[]
 ---@field frame table
 local ControlsSettingsTableWidget = Class.new(Widget,
 	function(self, columnConfig, args, frame)
@@ -43,7 +46,7 @@ function ControlsSettingsTableWidget:render()
 	}
 end
 
----@param args table
+---@param args {[string]: string?}
 ---@return string
 function ControlsSettingsTableWidget:renderHeader(args)
 	local frame = self.frame
@@ -56,7 +59,7 @@ function ControlsSettingsTableWidget:renderHeader(args)
 	return header .. " <small>([[List of player control settings|list of]])</small>'''"
 end
 
----@param args table
+---@param args {[string]: string?}
 ---@return string
 function ControlsSettingsTableWidget:renderFooter(args)
 	if args.date then
@@ -67,8 +70,8 @@ function ControlsSettingsTableWidget:renderFooter(args)
 	return '<span class="cinnabar-text"><i>No date of last update specified!</i></span>'
 end
 
----@param args table
----@return {title: string, value: fun(data: table): string?}[]
+---@param args {[string]: string?}
+---@return ColumnValue[]
 function ControlsSettingsTableWidget:getVisibleColumns(args)
 	local columns = Array.map(self.columnConfig, function(config)
 		return self:makeColumn(config)
@@ -78,7 +81,8 @@ function ControlsSettingsTableWidget:getVisibleColumns(args)
 	end)
 end
 
----@return {title: string, value: fun(data: table): string?}
+---@param config ColumnConfig
+---@return ColumnValue
 function ControlsSettingsTableWidget:makeColumn(config)
 	return {
 		title = config.title,
@@ -104,7 +108,7 @@ function ControlsSettingsTableWidget:makeColumn(config)
 end
 
 ---@param key string
----@param data table
+---@param data {[string]: string?}
 ---@return string?
 function ControlsSettingsTableWidget:formatKeyValue(key, data)
 	local keyValue = data[key:lower()]
@@ -124,10 +128,10 @@ function ControlsSettingsTableWidget:getImageName(device, key)
 	return Template.safeExpand(self.frame, 'Button translation', {(device or ''):lower(), (key or ''):lower()})
 end
 
----@param args table
+---@param args {[string]: string?}
 ---@param header string
 ---@param footer string
----@param visibleColumns {title: string, value: fun(data: table): string?}[]
+---@param visibleColumns ColumnValue[]
 ---@return Widget
 function ControlsSettingsTableWidget:renderTable(args, header, footer, visibleColumns)
 	return HtmlWidgets.Table{

@@ -17,9 +17,6 @@ local CustomControlsSettingsTable = Class.new(ControlsSettingsTable)
 ---@type string[]
 local LPDB_CONFIG = {'Accelerate', 'Brake', 'Steering', 'Steering_left', 'Steering_right', 'Camera_Change', 'Camera1', 'Camera2', 'Camera3', 'Show_Hide_Opponents', 'Show_Hide_Interface', 'Look_Behind', 'Give_Up', 'Respawn', 'Ac1', 'Ac2', 'Ac3', 'Ac4', 'Ac5'}
 
----@alias ColumnConfig
----| {key: string, title: string}
----| {keys: (string|{key: string})[], title: string}
 ---@type ColumnConfig[]
 local BASE_COLUMN_CONFIG = {
 	{key = 'Accelerate', title = 'Accelerate'},
