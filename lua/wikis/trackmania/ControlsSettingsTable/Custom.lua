@@ -15,45 +15,41 @@ local ControlsSettingsTable = Lua.import('Module:ControlsSettingsTable')
 local CustomControlsSettingsTable = Class.new(ControlsSettingsTable)
 
 ---@type string[]
-local LPDB_CONFIG = {'Accelerate', 'Brake', 'Steering', 'Camera_Change', 'Show_Hide_Opponents', 'Show_Hide_Interface', 'Horn', 'Look_Behind', 'Give_Up', 'Respawn', 'Ac_1', 'Ac_2', 'Ac_3', 'Ac_4', 'Ac_5', 'Camera_1', 'Camera_2', 'Camera_3'}
+local LPDB_CONFIG = {'Accelerate', 'Brake', 'Steering', 'Steering_left', 'Steering_right', 'Camera_Change', 'Camera1', 'Camera2', 'Camera3', 'Show_Hide_Opponents', 'Show_Hide_Interface', 'Look_Behind', 'Give_Up', 'Respawn', 'Ac1', 'Ac2', 'Ac3', 'Ac4', 'Ac5'}
+
+---@type ({key: string, title: string} | {keys: ({key: string} | string)[], title: string})[]
+local COLUMN_CONFIG = {
+	{key = 'Accelerate', title = 'Accelerate'},
+	{key = 'Brake', title = 'Brake'},
+	{key = 'Camera_Change', title = 'Camera Change'},
+	{keys = {{key = 'Camera1'}, ' / ', {key = 'Camera2'}, ' / ', {key = 'Camera3'}}, title = 'Camera (1/2/3)'},
+	{key = 'Give_Up', title = 'Give Up'},
+	{key = 'Respawn', title = 'Respawn'},
+	{keys = {{key = 'Ac1'}, ' / ',
+			{key = 'Ac2'}, ' / ',
+			{key = 'Ac3'}, ' / ',
+			{key = 'Ac4'}, ' / ',
+			{key = 'Ac5'}},
+			title = 'Action Slot (1/2/3/4/5)'},
+	{key = 'Show_Hide_Opponents', title = 'Show/Hide Opponents'},
+	{key = 'Show_Hide_Interface', title = 'Show/Hide Interface'},
+	{key = 'Look_Behind', title = 'Look Behind'},
+}
 
 ---@param args {[string]: string?}
----@return ({key: string, title: string} | {keys: ({key: string} | string)[], title: string})[]
-local function makeColumnConfig(args)
-	local COLUMN_CONFIG = {
-		{key = 'Accelerate', title = 'Accelerate'},
-		{key = 'Brake', title = 'Brake'},
-		{key = 'Camera_Change', title = 'Camera Change'},
-		{key = 'Show_Hide_Opponents', title = 'Show/Hide Opponents'},
-		{key = 'Show_Hide_Interface', title = 'Show/Hide Interface'},
-		{key = 'Horn', title = 'Horn'},
-		{key = 'Look_Behind', title = 'Look Behind'},
-		{key = 'Give_Up', title = 'Give Up'},
-		{key = 'Respawn', title = 'Respawn'},
-		{key = 'Ac_1', title = 'Action Slot 1'},
-		{key = 'Ac_2', title = 'Action Slot 2'},
-		{key = 'Ac_3', title = 'Action Slot 3'},
-		{key = 'Ac_4', title = 'Action Slot 4'},
-		{key = 'Ac_5', title = 'Action Slot 5'},
-		{key = 'Camera_1', title = 'Camera 1'},
-		{key = 'Camera_2', title = 'Camera 2'},
-		{key = 'Camera_3', title = 'Camera 3'},
-	}
-
+local function makeCustomColumns(args)
 	if args.steering then
-		table.insert(COLUMN_CONFIG, 3, {key = 'Steering', title = 'Steering'})
+		table.insert(COLUMN_CONFIG, 1, {key = 'Steering', title = 'Steering'})
 	else
-		table.insert(COLUMN_CONFIG, 3, {keys = {{key = 'Steering_left'}, ' / ', {key = 'Steering_right'}}, title = 'Steering (left/right)'})
+		table.insert(COLUMN_CONFIG, 1, {keys = {{key = 'Steering_left'}, ' / ', {key = 'Steering_right'}}, title = 'Steering (left/right)'})
 	end
-
-	return COLUMN_CONFIG
 end
 
 ---@param frame table
 ---@return Widget?
 function CustomControlsSettingsTable.create(frame)
 	local args = Arguments.getArgs(frame)
-	local COLUMN_CONFIG = makeColumnConfig(args)
+	makeCustomColumns(args)
 	return ControlsSettingsTable.create(LPDB_CONFIG, COLUMN_CONFIG, frame)
 end
 
