@@ -15,7 +15,12 @@ local ControlsSettingsTable = Lua.import('Module:ControlsSettingsTable')
 local CustomControlsSettingsTable = Class.new(ControlsSettingsTable)
 
 ---@type string[]
-local LPDB_CONFIG = {'Accelerate', 'Brake', 'Steering', 'Steering_left', 'Steering_right', 'Camera_Change', 'Camera1', 'Camera2', 'Camera3', 'Show_Hide_Opponents', 'Show_Hide_Interface', 'Look_Behind', 'Give_Up', 'Respawn', 'Ac1', 'Ac2', 'Ac3', 'Ac4', 'Ac5'}
+local LPDB_CONFIG = {
+	'Accelerate', 'Brake', 'Steering', 'Steering_left', 'Steering_right',
+	'Camera_Change', 'Camera1', 'Camera2', 'Camera3',
+	'Show_Hide_Opponents', 'Show_Hide_Interface', 'Look_Behind',
+	'Give_Up', 'Respawn', 'Ac1', 'Ac2', 'Ac3', 'Ac4', 'Ac5',
+}
 
 ---@type ColumnConfig[]
 local BASE_COLUMN_CONFIG = {
@@ -47,7 +52,10 @@ local function makeColumnConfig(args)
 	if args.steering then
 		table.insert(COLUMN_CONFIG, 1, {key = 'Steering', title = 'Steering'})
 	else
-		table.insert(COLUMN_CONFIG, 1, {keys = {{key = 'Steering_left'}, ' / ', {key = 'Steering_right'}}, title = 'Steering (left/right)'})
+		table.insert(COLUMN_CONFIG, 1, {
+			keys = {{key = 'Steering_left'}, ' / ', {key = 'Steering_right'}},
+			title = 'Steering (left/right)'
+		})
 	end
 
 	return COLUMN_CONFIG

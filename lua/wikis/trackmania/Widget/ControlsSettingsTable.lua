@@ -19,7 +19,9 @@ local WidgetUtil = Lua.import('Module:Widget/Util')
 
 local SETTINGS_LINK = 'Control settings'
 
----@alias ColumnConfig {key: string, title: string} | {keys: ({key: string} | string)[], title: string}
+---@alias ColumnConfig
+---| {key: string, title: string}
+---| {keys: ({key: string} | string)[], title: string}
 ---@alias ColumnValue {title: string, value: fun(data: {[string]: string?}): string?}
 
 ---@class ControlsSettingsTableWidget: Widget
@@ -52,9 +54,15 @@ function ControlsSettingsTableWidget:renderHeader(args)
 	local frame = self.frame
 	local header = Page.exists(SETTINGS_LINK) and '[['.. SETTINGS_LINK ..']] ' or SETTINGS_LINK..' '
 	if args.ref == 'insidesource' then
-		header = header .. frame:callParserFunction{ name = '#tag', args = { 'ref', Template.safeExpand(frame, 'inside source') } }
+		header = header .. frame:callParserFunction{
+			name = '#tag',
+			args = { 'ref', Template.safeExpand(frame, 'inside source') }
+		}
 	elseif args.ref then
-		header = header .. frame:callParserFunction{ name = '#tag', args = { 'ref', args['ref'] } }
+		header = header .. frame:callParserFunction{
+			name = '#tag',
+			args = { 'ref', args['ref'] }
+		}
 	end
 	return header .. " <small>([[List of player control settings|list of]])</small>'''"
 end
