@@ -4,17 +4,14 @@ Author(s): QuadratClown, SobakaPirat
 *******************************************************************************/
 .controls-responsive-table {
 	margin: 0;
-	width: calc( 100% - 347px );
 
 	td {
 		text-align: center;
 	}
 
-	@media screen and ( max-width: 600px ) {
-		width: 100%;
-	}
-
 	@media screen and ( max-width: 947px ) {
+		width: 100%;
+
 		tr {
 			display: block;
 		}
@@ -32,7 +29,7 @@ Author(s): QuadratClown, SobakaPirat
 			border-left: 0;
 
 			&::before {
-				content: attr( data-label );
+				content: attr(data-label);
 				float: left;
 				font-weight: bold;
 			}
