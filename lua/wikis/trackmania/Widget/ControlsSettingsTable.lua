@@ -38,19 +38,19 @@ local ControlsSettingsTableWidget = Class.new(Widget,
 
 ---@return Widget?
 function ControlsSettingsTableWidget:render()
-	local header = self:renderHeader(self.args)
-	local footer = self:renderFooter(self.args)
-	local visibleColumns = self:getVisibleColumns(self.args)
+	local header = self:renderHeader()
+	local footer = self:renderFooter()
+	local visibleColumns = self:getVisibleColumns()
 
 	return HtmlWidgets.Div{
 		classes = {'table-responsive'},
-		children = {self:renderTable(self.args, header, footer, visibleColumns)}
+		children = {self:renderTable(header, footer, visibleColumns)}
 	}
 end
 
----@param args {[string]: string?}
 ---@return string
-function ControlsSettingsTableWidget:renderHeader(args)
+function ControlsSettingsTableWidget:renderHeader()
+	local args = self.args
 	local frame = self.frame
 	local header = Page.exists(SETTINGS_LINK) and '[['.. SETTINGS_LINK ..']] ' or SETTINGS_LINK..' '
 	if args.ref == 'insidesource' then
@@ -67,9 +67,9 @@ function ControlsSettingsTableWidget:renderHeader(args)
 	return header .. " <small>([[List of player control settings|list of]])</small>'''"
 end
 
----@param args {[string]: string?}
 ---@return string
-function ControlsSettingsTableWidget:renderFooter(args)
+function ControlsSettingsTableWidget:renderFooter()
+	local args = self.args
 	if args.date then
 		local year, month, day = (args.date):match('(%d+)-(%d+)-(%d+)')
 		local dayAgo = math.floor((os.time() - os.time{year=year, month=month, day=day}) / 86400)
@@ -78,14 +78,13 @@ function ControlsSettingsTableWidget:renderFooter(args)
 	return '<span class="cinnabar-text"><i>No date of last update specified!</i></span>'
 end
 
----@param args {[string]: string?}
 ---@return ColumnValue[]
-function ControlsSettingsTableWidget:getVisibleColumns(args)
+function ControlsSettingsTableWidget:getVisibleColumns()
 	local columns = Array.map(self.columnConfig, function(config)
 		return self:makeColumn(config)
 	end)
 	return Array.filter(columns, function(column)
-		return String.isNotEmpty(column.value(args))
+		return String.isNotEmpty(column.value(self.args))
 	end)
 end
 
@@ -136,12 +135,11 @@ function ControlsSettingsTableWidget:getImageName(device, key)
 	return Template.safeExpand(self.frame, 'Button translation', {(device or ''):lower(), (key or ''):lower()})
 end
 
----@param args {[string]: string?}
 ---@param header string
 ---@param footer string
 ---@param visibleColumns ColumnValue[]
 ---@return Widget
-function ControlsSettingsTableWidget:renderTable(args, header, footer, visibleColumns)
+function ControlsSettingsTableWidget:renderTable(header, footer, visibleColumns)
 	return HtmlWidgets.Table{
 		classes = {'wikitable', 'controls-responsive-table'},
 		css = {['table-layout'] = 'auto'},
@@ -158,7 +156,7 @@ function ControlsSettingsTableWidget:renderTable(args, header, footer, visibleCo
 			HtmlWidgets.Tr{children = Array.map(visibleColumns, function(column)
 				return HtmlWidgets.Td{
 					attributes = {['data-label'] = column.title},
-					children = column.value(args)
+					children = column.value(self.args)
 					}
 			end)},
 			HtmlWidgets.Tr{children = {
