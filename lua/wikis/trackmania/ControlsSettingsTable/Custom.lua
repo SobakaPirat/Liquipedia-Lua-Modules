@@ -17,8 +17,11 @@ local CustomControlsSettingsTable = Class.new(ControlsSettingsTable)
 ---@type string[]
 local LPDB_CONFIG = {'Accelerate', 'Brake', 'Steering', 'Steering_left', 'Steering_right', 'Camera_Change', 'Camera1', 'Camera2', 'Camera3', 'Show_Hide_Opponents', 'Show_Hide_Interface', 'Look_Behind', 'Give_Up', 'Respawn', 'Ac1', 'Ac2', 'Ac3', 'Ac4', 'Ac5'}
 
----@type ({key: string, title: string} | {keys: ({key: string} | string)[], title: string})[]
-local COLUMN_CONFIG = {
+---@alias ColumnConfig
+---| {key: string, title: string}
+---| {keys: (string|{key: string})[], title: string}
+---@type ColumnConfig[]
+local BASE_COLUMN_CONFIG = {
 	{key = 'Accelerate', title = 'Accelerate'},
 	{key = 'Brake', title = 'Brake'},
 	{key = 'Camera_Change', title = 'Camera Change'},
@@ -37,19 +40,27 @@ local COLUMN_CONFIG = {
 }
 
 ---@param args {[string]: string?}
-local function makeCustomColumns(args)
+---@return ColumnConfig[]
+local function makeColumnConfig(args)
+	local COLUMN_CONFIG = {}
+	for _, col in ipairs(BASE_COLUMN_CONFIG) do
+		table.insert(COLUMN_CONFIG, col)
+	end
+
 	if args.steering then
 		table.insert(COLUMN_CONFIG, 1, {key = 'Steering', title = 'Steering'})
 	else
 		table.insert(COLUMN_CONFIG, 1, {keys = {{key = 'Steering_left'}, ' / ', {key = 'Steering_right'}}, title = 'Steering (left/right)'})
 	end
+
+	return COLUMN_CONFIG
 end
 
 ---@param frame table
 ---@return Widget?
 function CustomControlsSettingsTable.create(frame)
 	local args = Arguments.getArgs(frame)
-	makeCustomColumns(args)
+	local COLUMN_CONFIG = makeColumnConfig(args)
 	return ControlsSettingsTable.create(LPDB_CONFIG, COLUMN_CONFIG, frame)
 end
 
