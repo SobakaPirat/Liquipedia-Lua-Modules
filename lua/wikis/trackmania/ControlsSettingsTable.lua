@@ -13,6 +13,10 @@ local ControlsSettingsTableWidget = Lua.import('Module:Widget/ControlsSettingsTa
 
 local ControlsSettingsTable = Class.new()
 
+---@param lpdbConfig string[]
+---@param columnConfig ColumnConfig[]
+---@param frame table
+---@return Widget?
 function ControlsSettingsTable.create(lpdbConfig, columnConfig, frame)
 	local args = Arguments.getArgs(frame)
 	local widget = ControlsSettingsTableWidget(columnConfig, args)
@@ -20,6 +24,8 @@ function ControlsSettingsTable.create(lpdbConfig, columnConfig, frame)
 	return widget:tryMake()
 end
 
+---@param lpdbConfig string[]
+---@param args {[string]: string?}
 function ControlsSettingsTable.saveToLpdb(lpdbConfig, args)
 	local title = mw.title.getCurrentTitle().text
 	local extradata = ControlsSettingsTable.generateLpdbExtradata(lpdbConfig, args)
@@ -32,6 +38,9 @@ function ControlsSettingsTable.saveToLpdb(lpdbConfig, args)
 	})
 end
 
+---@param lpdbConfig string[]
+---@param args {[string]: string?}
+---@return {[string]: string?}
 function ControlsSettingsTable.generateLpdbExtradata(lpdbConfig, args)
 	local result = {}
 	for _, key in ipairs(lpdbConfig) do
