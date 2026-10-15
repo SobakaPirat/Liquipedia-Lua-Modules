@@ -141,9 +141,44 @@ describe('PlayerTabs Module', function()
 			alwaysSubpages = {'Coaching'},
 		}, function()
 			assert.are.same({
-				{name = 'Results', always = false},
-				{name = 'Coaching', always = true},
+				{name = 'Results', link = 'Results', always = false},
+				{name = 'Coaching', link = 'Coaching', always = true},
 			}, PlayerTabs.getSubpageConfigs())
+		end)
+	end)
+
+	it('should allow a tab name that differs from the subpage link', function()
+		withPlayerTabsConfig({
+			subpages = {
+				{name = 'Coaching Videos', link = 'Coaching'},
+				'Results',
+			},
+			alwaysSubpages = {
+				{name = 'Fan Content', link = 'FanContent'},
+			},
+		}, function()
+			mw.title.new = function(page)
+				return {exists = page == 'Twizzler/Coaching' or page == 'Twizzler/Results'}
+			end
+
+			local result = PlayerTabs.getTabArgs('Twizzler')
+			assert.are.equal('Overview', result.name1)
+			assert.are.equal('Coaching Videos', result.name2)
+			assert.are.equal('Twizzler/Coaching', result.link2)
+			assert.are.equal('Results', result.name3)
+			assert.are.equal('Twizzler/Results', result.link3)
+			assert.are.equal('Fan Content', result.name4)
+			assert.are.equal('Twizzler/FanContent', result.link4)
+			assert.is_nil(result.name5)
+		end)
+	end)
+
+	it('isSubpage should match the subpage link, not the tab name', function()
+		withPlayerTabsConfig({
+			subpages = {{name = 'Coaching Videos', link = 'Coaching'}},
+		}, function()
+			assert.is_true(PlayerTabs.isSubpage('Coaching'))
+			assert.is_false(PlayerTabs.isSubpage('Coaching Videos'))
 		end)
 	end)
 

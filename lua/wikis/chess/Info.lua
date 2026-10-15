@@ -81,7 +81,7 @@ return {
 			},
 			-- Subpages shown unconditionally (even if the page does not exist yet)
 			alwaysSubpages = {
-				'Talent',
+				{name = 'Talent', link = 'Broadcasts'},
 			},
 			runQueryTabs = {
 				{
