@@ -23,7 +23,7 @@ local PlayerTabs = {}
 
 ---Returns the playerTabs config section of the current wiki's Module:Info.
 ---@private
----@return {subpages: string[]?, runQueryTabs: {displayName: string?, form: string, template: string?, queryArgs: table?}[]?}
+---@return {subpages: string[]?, alwaysSubpages: string[]?, runQueryTabs: table[]?}
 function PlayerTabs._config()
 	return (Info.config and Info.config.playerTabs) or {}
 end
@@ -68,8 +68,35 @@ end
 
 ---Returns the subpage list configured for the current wiki in Module:Info.
 ---@return string[]
+---Returns the list of configured subpage names for the current wiki.
+---Includes both conditional (`subpages`) and always-visible (`alwaysSubpages`) subpages.
+---@return string[]
 function PlayerTabs.getSubpages()
-	return PlayerTabs._config().subpages or {}
+	local config = PlayerTabs._config()
+	local names = {}
+	for _, list in ipairs({config.subpages or {}, config.alwaysSubpages or {}}) do
+		for _, name in ipairs(list) do
+			table.insert(names, name)
+		end
+	end
+	return names
+end
+
+---Returns the normalized subpage tab configurations.
+---Each entry is `{name: string, always: boolean}`.
+---Subpages from `subpages` are only shown when the page exists (`always = false`),
+---subpages from `alwaysSubpages` are always shown (`always = true`).
+---@return {name: string, always: boolean}[]
+function PlayerTabs.getSubpageConfigs()
+	local config = PlayerTabs._config()
+	local configs = {}
+	for _, name in ipairs(config.subpages or {}) do
+		table.insert(configs, {name = name, always = false})
+	end
+	for _, name in ipairs(config.alwaysSubpages or {}) do
+		table.insert(configs, {name = name, always = true})
+	end
+	return configs
 end
 
 ---Checks whether the given page name is one of the configured player subpages.
@@ -90,12 +117,14 @@ function PlayerTabs.getTabArgs(player)
 
 	local tabCounter = 1
 
-	-- Subpages specific to the wiki
-	Array.forEach(PlayerTabs.getSubpages(), function(item)
-		if Page.exists(player .. '/' .. item) then
+	-- Subpages specific to the wiki.
+	-- Subpages from `alwaysSubpages` are added unconditionally; subpages from
+	-- `subpages` are only added when the page actually exists.
+	Array.forEach(PlayerTabs.getSubpageConfigs(), function(subpage)
+		if subpage.always or Page.exists(player .. '/' .. subpage.name) then
 			tabCounter = tabCounter + 1
-			tabArgs['name' .. tabCounter] = item
-			tabArgs['link' .. tabCounter] = player .. '/' .. item
+			tabArgs['name' .. tabCounter] = subpage.name
+			tabArgs['link' .. tabCounter] = player .. '/' .. subpage.name
 		end
 	end)
 

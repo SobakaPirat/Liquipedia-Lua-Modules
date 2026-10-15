@@ -73,10 +73,14 @@ return {
 			},
 		},
 		playerTabs = {
+			-- Subpages shown only when the page actually exists
 			subpages = {
 				'Results',
 				'Played Matches',
 				'Coaching',
+			},
+			-- Subpages shown unconditionally (even if the page does not exist yet)
+			alwaysSubpages = {
 				'Talent',
 			},
 			runQueryTabs = {

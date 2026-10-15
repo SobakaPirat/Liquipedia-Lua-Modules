@@ -107,6 +107,46 @@ describe('PlayerTabs Module', function()
 		end)
 	end)
 
+	it('should add alwaysSubpages even when the page does not exist', function()
+		withPlayerTabsConfig({
+			subpages = {'Results'},
+			alwaysSubpages = {'Coaching'},
+		}, function()
+			mw.title.new = function(page)
+				return {exists = page == 'Twizzler/Results'}
+			end
+
+			local result = PlayerTabs.getTabArgs('Twizzler')
+			assert.are.equal('Overview', result.name1)
+			assert.are.equal('Results', result.name2)
+			assert.are.equal('Twizzler/Results', result.link2)
+			assert.are.equal('Coaching', result.name3)
+			assert.are.equal('Twizzler/Coaching', result.link3)
+			assert.is_nil(result.name4)
+		end)
+	end)
+
+	it('getSubpages should include both subpages and alwaysSubpages', function()
+		withPlayerTabsConfig({
+			subpages = {'Results'},
+			alwaysSubpages = {'Coaching'},
+		}, function()
+			assert.are.same({'Results', 'Coaching'}, PlayerTabs.getSubpages())
+		end)
+	end)
+
+	it('getSubpageConfigs should map the two lists onto always flags', function()
+		withPlayerTabsConfig({
+			subpages = {'Results'},
+			alwaysSubpages = {'Coaching'},
+		}, function()
+			assert.are.same({
+				{name = 'Results', always = false},
+				{name = 'Coaching', always = true},
+			}, PlayerTabs.getSubpageConfigs())
+		end)
+	end)
+
 	it('should interpolate ${player} into query arg values', function()
 		assert.are.equal(
 			'Head_to_head_query[player]=Twizzler',
