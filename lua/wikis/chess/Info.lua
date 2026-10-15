@@ -72,6 +72,23 @@ return {
 				swiss = {'matchdiff', 'points'},
 			},
 		},
+		playerTabs = {
+			subpages = {
+				'Results',
+				'Played Matches',
+				'Coaching',
+				'Talent',
+			},
+			runQueryTabs = {
+				{
+					displayName = 'Head to head query',
+					mediawikiForm = 'Match history',
+					form = 'H2H',
+					template = 'Head_to_head_query',
+					queryArgs = {player = '${player}'},
+				},
+			},
+		},
 	},
 	defaultRoundPrecision = 0,
 }
