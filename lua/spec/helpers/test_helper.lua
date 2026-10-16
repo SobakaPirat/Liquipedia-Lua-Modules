@@ -200,7 +200,7 @@ return function(busted, helper, options)
 			end
 
 			if newName == 'Arguments' then
-				return {getArgs = function(t) return t end}
+				return {getArgs = function(t) return t or {} end}
 			end
 
 			if newName == 'FeatureFlag/Config' then

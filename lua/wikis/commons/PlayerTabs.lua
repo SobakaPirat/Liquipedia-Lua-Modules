@@ -47,8 +47,10 @@ function PlayerTabs.run(frame)
 	local subpageName = string.gsub(pageName, '.*/([^/]+)$', '%1')
 	local player = string.gsub(pageName, '(.*)/[^/]-$', '%1')
 
+	local displayTitle = args.title or PlayerTabs._getDisplayTitle(player, subpageName)
+
 	Page.setDisplayTitle{
-		title = PlayerTabs._getDisplayTitle(player, subpageName),
+		title = displayTitle,
 	}
 
 	return Tabs.static(PlayerTabs.getTabArgs(player, args))

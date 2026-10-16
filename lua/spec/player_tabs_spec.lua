@@ -336,6 +336,22 @@ describe('PlayerTabs Module', function()
 			end)
 		end)
 
+		it('should override the page display title without changing the player name', function()
+			mockLpdb.setUp()
+			titleStub = stub(mw.title, 'getCurrentTitle', function()
+				return {prefixedText = 'Twizzler'}
+			end)
+
+			withPlayerTabsConfig({}, function()
+				local result = PlayerTabs.run({title = 'Custom page name'})
+				assert.is_not_nil(result)
+				local html = tostring(result)
+				-- Tab links must still point at the real player page, not the custom title
+				assert.is_true(html:find('Twizzler', nil, true) ~= nil)
+				assert.is_false(html:find('Custom page name', nil, true) ~= nil)
+			end)
+		end)
+
 		it('should render on the player main page without subpage tabs', function()
 			mockLpdb.setUp()
 			titleStub = stub(mw.title, 'getCurrentTitle', function()
