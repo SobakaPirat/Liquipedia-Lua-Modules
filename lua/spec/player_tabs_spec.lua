@@ -91,6 +91,91 @@ describe('PlayerTabs Module', function()
 		end)
 	end)
 
+	it('should hide all RunQuery tabs when queryTabs is false', function()
+		withPlayerTabsConfig({
+			runQueryTabs = {{
+				displayName = 'Head to head query',
+				mediawikiForm = 'Match history',
+				form = 'H2H',
+				template = 'Head_to_head_query',
+				queryArgs = {player = '${player}'},
+			}},
+		}, function()
+			mw.ext.VariablesLua.vardefine('queryTabs', 'false')
+			local result = PlayerTabs.getTabArgs('Twizzler')
+			assert.is_nil(result.name2)
+		end)
+	end)
+
+	it('should show all RunQuery tabs when queryTabs is truthy', function()
+		withPlayerTabsConfig({
+			runQueryTabs = {{
+				displayName = 'Head to head query',
+				mediawikiForm = 'Match history',
+				form = 'H2H',
+			}},
+		}, function()
+			mw.ext.VariablesLua.vardefine('queryTabs', 'true')
+			local result = PlayerTabs.getTabArgs('Twizzler')
+			assert.is_not_nil(result.name2)
+		end)
+	end)
+
+	it('should show all RunQuery tabs when queryTabs is not set', function()
+		withPlayerTabsConfig({
+			runQueryTabs = {{
+				displayName = 'Head to head query',
+				mediawikiForm = 'Match history',
+				form = 'H2H',
+			}},
+		}, function()
+			local result = PlayerTabs.getTabArgs('Twizzler')
+			assert.is_not_nil(result.name2)
+		end)
+	end)
+
+	it('should show all RunQuery tabs (variable not configured in test config)', function()
+		withPlayerTabsConfig({
+			runQueryTabs = {{
+				displayName = 'Head to head query',
+				mediawikiForm = 'Match history',
+				form = 'H2H',
+			}},
+		}, function()
+			local result = PlayerTabs.getTabArgs('Twizzler')
+			assert.is_not_nil(result.name2)
+		end)
+	end)
+
+	it('should hide all RunQuery tabs from a false template arg via getTabArgs', function()
+		withPlayerTabsConfig({
+			runQueryTabs = {{
+				displayName = 'Head to head query',
+				mediawikiForm = 'Match history',
+				form = 'H2H',
+			}},
+		}, function()
+			-- Template args take precedence over the page variable
+			mw.ext.VariablesLua.vardefine('queryTabs', 'true')
+			local result = PlayerTabs.getTabArgs('Twizzler', {queryTabs = 'no'})
+			assert.is_nil(result.name2)
+		end)
+	end)
+
+	it('should show all RunQuery tabs from a truthy template arg via getTabArgs', function()
+		withPlayerTabsConfig({
+			runQueryTabs = {{
+				displayName = 'Head to head query',
+				mediawikiForm = 'Match history',
+				form = 'H2H',
+			}},
+		}, function()
+			local result = PlayerTabs.getTabArgs('Twizzler', {queryTabs = 'yes'})
+			assert.is_not_nil(result.name2)
+		end)
+	end)
+
+
 	it('should add subpages from the config when they exist', function()
 		withPlayerTabsConfig({
 			subpages = {'Results', 'Played Matches'},

@@ -11,11 +11,14 @@
 local Lua = require('Module:Lua')
 
 local Array = Lua.import('Module:Array')
+local Arguments = Lua.import('Module:Arguments')
 local Info = Lua.import('Module:Info', {loadData = true})
+local Logic = Lua.import('Module:Logic')
 local Page = Lua.import('Module:Page')
 local StringUtils = Lua.import('Module:StringUtils')
 local Table = Lua.import('Module:Table')
 local Tabs = Lua.import('Module:Tabs')
+local Variables = Lua.import('Module:Variables')
 
 local QueryLink = Lua.import('Module:Widget/QueryLink')
 
@@ -26,15 +29,19 @@ local PlayerTabs = {}
 ---@return {
 ---	subpages: (string|{name: string?, link: string?}?[])?,
 ---	alwaysSubpages: (string|{name: string?, link: string?}?[])?,
----	runQueryTabs: table[]?,
+---	runQueryTabs: {displayName: string?, mediawikiForm: string?, form: string,
+---		template: string?, queryArgs: table?}[]?,
 ---}
 function PlayerTabs._config()
 	return (Info.config and Info.config.playerTabs) or {}
 end
 
 ---Template entry point.
+---@param frame Frame
 ---@return Renderable?
-function PlayerTabs.run()
+function PlayerTabs.run(frame)
+	local args = Arguments.getArgs(frame)
+
 	local pageName = mw.title.getCurrentTitle().prefixedText
 
 	local subpageName = string.gsub(pageName, '.*/([^/]+)$', '%1')
@@ -44,7 +51,7 @@ function PlayerTabs.run()
 		title = PlayerTabs._getDisplayTitle(player, subpageName),
 	}
 
-	return Tabs.static(PlayerTabs.getTabArgs(player))
+	return Tabs.static(PlayerTabs.getTabArgs(player, args))
 end
 
 ---Builds the display title for player pages, e.g. `Twizzler: Results` on subpages.
@@ -70,8 +77,6 @@ function PlayerTabs._getDisplayTitle(player, subpageName)
 	return title
 end
 
----Returns the subpage list configured for the current wiki in Module:Info.
----@return string[]
 ---Returns the list of configured subpage names for the current wiki.
 ---Returns the actual page names (`link`) so `isSubpage` matches real page names,
 ---not the display names.
@@ -122,8 +127,9 @@ end
 
 ---Builds the tab configuration for player profile tabs.
 ---@param player string The page name of the player (without the page prefix)
+---@param args table? Template arguments passed to the PlayerTabs template
 ---@return table A table with `nameN`/`linkN` entries compatible with Tabs.static
-function PlayerTabs.getTabArgs(player)
+function PlayerTabs.getTabArgs(player, args)
 	local tabArgs = {
 		name1 = 'Overview',
 		link1 = player,
@@ -145,26 +151,46 @@ function PlayerTabs.getTabArgs(player)
 
 	-- Query tabs are rendered via the QueryLink widget (as e.g. warcraft/starcraft2 PlayerTabs do),
 	-- which builds the lighthouse and legacy MediaWiki RunQuery urls and displays a proper link.
-	Array.forEach(PlayerTabs._config().runQueryTabs or {}, function(query)
-		if query.mediawikiForm or query.form then
-			tabCounter = tabCounter + 1
-			local queryArgs = Table.map(query.queryArgs or {}, function(key, value)
-				if type(value) == 'string' then
-					return key, StringUtils.interpolate(value, {player = player})
-				end
-				return key, value
-			end)
-			tabArgs['name' .. tabCounter] = QueryLink{
-				mediawikiForm = query.mediawikiForm,
-				form = query.form,
-				template = query.template,
-				display = query.displayName or 'Query',
-				queryArgs = queryArgs,
-			}
-		end
-	end)
+	-- A single module-wide variable (see `_isRunQueryTabsEnabled`) can disable all of them,
+	-- e.g. via `{{PlayerTabs|hasH2H=no}}`.
+	if PlayerTabs._isRunQueryTabsEnabled(args) then
+		Array.forEach(PlayerTabs._config().runQueryTabs or {}, function(query)
+			if query.mediawikiForm or query.form then
+				tabCounter = tabCounter + 1
+				local queryArgs = Table.map(query.queryArgs or {}, function(key, value)
+					if type(value) == 'string' then
+						return key, StringUtils.interpolate(value, {player = player})
+					end
+					return key, value
+				end)
+				tabArgs['name' .. tabCounter] = QueryLink{
+					mediawikiForm = query.mediawikiForm,
+					form = query.form,
+					template = query.template,
+					display = query.displayName or 'Query',
+					queryArgs = queryArgs,
+				}
+			end
+		end)
+	end
 
 	return tabArgs
+end
+
+---Checks whether the run query tabs should be shown at all.
+---The variable `queryTabs` controls visibility: when it evaluates to
+---false (`0`, `no`, ...) all run query tabs are hidden. The value is read
+---from the template arguments first (e.g. `{{PlayerTabs|queryTabs=no}}`),
+---falling back to the page variable of the same name.
+---@private
+---@param args table? Template arguments passed to the PlayerTabs template
+---@return boolean
+function PlayerTabs._isRunQueryTabsEnabled(args)
+	local varValue = Logic.nilIfEmpty(args and args['queryTabs'])
+	if varValue == nil then
+		varValue = Variables.varDefault('queryTabs')
+	end
+	return Logic.readBoolOrNil(varValue) ~= false
 end
 
 return PlayerTabs
