@@ -73,15 +73,17 @@ return {
 			},
 		},
 		playerTabs = {
-			-- Subpages shown only when the page actually exists
-			subpages = {
+			-- Default subpages shown unconditionally (even if the page does
+			-- not exist yet), listed before the special subpages
+			defaultSubpages = {
+				{name = 'Talent', link = 'Broadcasts'},
+			},
+			-- Special subpages shown only when the page actually exists,
+			-- listed after the default subpages
+			specialSubpages = {
 				'Results',
 				'Played Matches',
 				'Coaching',
-			},
-			-- Subpages shown unconditionally (even if the page does not exist yet)
-			alwaysSubpages = {
-				{name = 'Talent', link = 'Broadcasts'},
 			},
 			runQueryTabs = {
 				{
@@ -90,6 +92,28 @@ return {
 					form = 'H2H',
 					template = 'Head_to_head_query',
 					queryArgs = {player = '${player}'},
+				},
+			},
+		},
+		teamTabs = {
+			-- Default subpages shown unconditionally, listed first
+			defaultSubpages = {
+				'Results',
+				'Played Matches',
+			},
+			-- Special subpages shown only when the page exists, listed after
+			specialSubpages = {
+				'Player Results',
+				'History',
+				'Awards',
+			},
+			runQueryTabs = {
+				{
+					displayName = 'Team matches query',
+					mediawikiForm = 'Team match history',
+					form = 'TMS',
+					template = 'Team_matches_query',
+					queryArgs = {team = '${team}'},
 				},
 			},
 		},
