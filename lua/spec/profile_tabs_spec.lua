@@ -1,7 +1,15 @@
 -- luacheck: ignore
 --- Triple Comment to Enable our LLS Plugin
 describe('ProfileTabs Module', function()
-	local ProfileTabs = require('Module:ProfileTabs')
+	local Controller = require('Module:Features/ProfileTabs/Controller')
+	local ProfileTabsSubpages = require('Module:Features/ProfileTabs/Lib/Subpages')
+	local ProfileTabsTabs = require('Module:Features/ProfileTabs/Components/Tabs')
+
+	local ProfileTabs = Controller
+	ProfileTabs.getTabArgs = ProfileTabsTabs.getTabArgs
+	ProfileTabs.getSubpages = ProfileTabsSubpages.getSubpages
+	ProfileTabs.getSubpageConfigs = ProfileTabsSubpages.getSubpageConfigs
+	ProfileTabs.isSubpage = ProfileTabsSubpages.isSubpage
 	local Info = require('Module:Info')
 	local StringUtils = require('Module:StringUtils')
 
@@ -34,8 +42,7 @@ describe('ProfileTabs Module', function()
 		mw.title.new = origTitleNew
 	end)
 
-	-- Injects playerTabs config into the loaded Info table
-	-- (ProfileTabs holds a reference to the same table) and restores it afterwards.
+	-- Injects playerTabs config into the loaded Info table and restores it afterwards (ProfileTabs holds a reference to the same table).
 	local function withProfileTabsConfig(config, func)
 		Info.config = Info.config or {}
 		local origProfileTabs = Info.config.playerTabs
@@ -57,8 +64,7 @@ describe('ProfileTabs Module', function()
 		withProfileTabsConfig({
 			runQueryTabs = h2hConfig('Head to head query'),
 		}, function()
-			-- RunQuery tabs are always added, no Page.exists check:
-			-- the query url is not a valid page title.
+			-- RunQuery tabs are always added, no Page.exists check: the url is not a page title.
 			local result = ProfileTabs.getTabArgs('player', 'Twizzler')
 			assert.is_not_nil(result.name2)
 			assert.are.equal('table', type(result.name2))

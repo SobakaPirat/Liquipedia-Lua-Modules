@@ -73,13 +73,11 @@ return {
 			},
 		},
 		playerTabs = {
-			-- Default subpages shown unconditionally (even if the page does
-			-- not exist yet), listed before the special subpages
+			-- Default subpages shown unconditionally, listed first
 			defaultSubpages = {
 				{name = 'Talent', link = 'Broadcasts'},
 			},
-			-- Special subpages shown only when the page actually exists,
-			-- listed after the default subpages
+			-- Special subpages shown only when the page exists, listed after
 			specialSubpages = {
 				'Results',
 				'Played Matches',

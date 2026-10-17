@@ -77,5 +77,54 @@ return {
 			soloAsFactionTable = true,
 			sortPlayersInTable = true,
 		},
+		playerTabs = {
+			specialSubpages = {
+				'Events',
+				'Broadcasts',
+			},
+			runQueryTabs = {
+				{
+					displayName = 'Results',
+					mediawikiForm = 'Player Results',
+					form = 'Player Results/LH',
+					template = 'Player results',
+					queryArgs = {
+						player = '${player}',
+						tier = '1,2,3',
+						limit = '250',
+					},
+				},
+				{
+					displayName = 'Matches',
+					mediawikiForm = 'Player Matches',
+					form = 'Player Matches/LH',
+					template = 'Player Matches',
+					queryArgs = {
+						player = '${player}',
+						tier = '1,2,3',
+						linkSubPage = 'false',
+						limit = '250',
+					},
+				},
+				{
+					displayName = 'Statistics',
+					mediawikiForm = 'PlayerStats',
+					form = 'PlayerStats/LH',
+					template = 'Player statistics',
+					queryArgs = {player = '${player}'},
+				},
+			},
+		},
+		teamTabs = {
+			runQueryTabs = {
+				{
+					displayName = 'Team matches query',
+					mediawikiForm = 'Team match history',
+					form = 'TMS',
+					template = 'Team_matches_query',
+					queryArgs = {team = '${team}'},
+				},
+			},
+		},
 	},
 }
