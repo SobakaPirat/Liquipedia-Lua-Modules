@@ -14,7 +14,6 @@ local Tabs = Lua.import('Module:Tabs')
 
 local ProfileTabsApiDisplayTitle = Lua.import('Module:Features/ProfileTabs/Api/DisplayTitle')
 local ProfileTabsComponentsTabs = Lua.import('Module:Features/ProfileTabs/Components/Tabs')
-local ProfileTabsSubpages = Lua.import('Module:Features/ProfileTabs/Lib/Subpages')
 local PROFILE_TYPES = Lua.import('Module:Features/ProfileTabs/Types')
 
 local ProfileTabsController = {}
@@ -35,28 +34,34 @@ function ProfileTabsController._resolveProfileType(first, frame)
 	return PROFILE_TYPES[first] and first or 'player', frame
 end
 
----Builds the display title for profile pages, e.g. `Twizzler: Results` on subpages
----or `Twizzler: Results: Pre-2020` on nested subpages. Returns nil on profile main pages.
+---Returns the subpage tab name `pageName` belongs to, or nil when on the profile main page.
+---A page is on a subpage when its name ends in `/` + one of the profile type's tab names.
+---@private
+---@param profileType string
+---@param pageName string
+---@return string?
+function ProfileTabsController._getSubpageName(profileType, pageName)
+for _, tabName in ipairs(PROFILE_TYPES[profileType].tabs) do
+if pageName:sub(-#tabName - 1) == '/' .. tabName then
+return tabName
+end
+end
+end
+
+---Builds the display title for profile pages, e.g. `Twizzler: Results` on subpages.
+---Returns nil on profile main pages.
 ---@private
 ---@param profileType string
 ---@param profile string
 ---@param subpageName string?
 ---@return string?
 function ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
-	if not subpageName then
-		return
-	end
+if not subpageName then
+return
+end
 
-	local title = ProfileTabsApiDisplayTitle.get(profileType, profile) or profile
-
-	-- Split nested subpage paths into their parts and join with ': '
-	local parts = {}
-	for part in subpageName:gmatch('[^/]+') do
-		table.insert(parts, part)
-	end
-	title = title .. ': ' .. table.concat(parts, ': ')
-
-	return title
+local title = ProfileTabsApiDisplayTitle.get(profileType, profile) or profile
+return title .. ': ' .. subpageName
 end
 
 ---Template entry point.
@@ -64,23 +69,22 @@ end
 ---@param frame Frame?
 ---@return Renderable?
 function ProfileTabsController.run(first, frame)
-	local profileType, resolvedFrame = ProfileTabsController._resolveProfileType(first, frame)
-	frame = resolvedFrame or frame
-	local args = Arguments.getArgs(frame)
+local profileType, resolvedFrame = ProfileTabsController._resolveProfileType(first, frame)
+frame = resolvedFrame or frame
+local args = Arguments.getArgs(frame)
 
-	local pageName = mw.title.getCurrentTitle().prefixedText
+local pageName = mw.title.getCurrentTitle().prefixedText
 
-	local subpageName = ProfileTabsSubpages.getSubpageFromPageName(profileType, pageName)
-	local profile = subpageName and pageName:sub(1, -#subpageName - 2) or pageName
+local subpageName = ProfileTabsController._getSubpageName(profileType, pageName)
+local profile = subpageName and pageName:sub(1, -#subpageName - 2) or pageName
 
-	local displayTitle = args.title or ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
+local displayTitle = args.title or ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
 
-	Page.setDisplayTitle{
-		title = displayTitle,
-	}
+Page.setDisplayTitle{
+title = displayTitle,
+}
 
-	return Tabs.static(ProfileTabsComponentsTabs.getTabArgs(profileType, profile, args))
+return Tabs.static(ProfileTabsComponentsTabs.getTabArgs(profileType, profile))
 end
 
 return ProfileTabsController
-
