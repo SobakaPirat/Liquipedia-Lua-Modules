@@ -12,6 +12,7 @@ local Array = Lua.import('Module:Array')
 local Page = Lua.import('Module:Page')
 local StringUtils = Lua.import('Module:StringUtils')
 local Table = Lua.import('Module:Table')
+local Tabs = Lua.import('Module:Tabs')
 
 local QueryLink = Lua.import('Module:Widget/QueryLink')
 
@@ -21,6 +22,27 @@ local ProfileTabsSubpages = Lua.import('Module:Features/ProfileTabs/Lib/Subpages
 local PROFILE_TYPES = Lua.import('Module:Features/ProfileTabs/Types')
 
 local ProfileTabsTabs = {}
+
+---Builds a nested Tabs.static renderable from a list of nested subpage configs.
+---The nested tabs link to `profile/subpage/nestedpage` pages.
+---@private
+---@param profile string
+---@param subpage string The parent subpage page name (without the profile prefix)
+---@param nestedConfigs ProfileTabsSubpageConfig[]
+---@return Renderable?
+function ProfileTabsTabs._buildNestedTabs(profile, subpage, nestedConfigs)
+	local nestedArgs = {}
+	local argIndex = 1
+	Array.forEach(nestedConfigs, function(nested)
+		if nested.default or Page.exists(profile .. '/' .. subpage .. '/' .. nested.link) then
+			nestedArgs['name' .. argIndex] = nested.name
+			nestedArgs['link' .. argIndex] = profile .. '/' .. subpage .. '/' .. nested.link
+			argIndex = argIndex + 1
+		end
+	end)
+	-- Tabs.static resolves the active tab from the current page name
+	return Tabs.static(nestedArgs)
+end
 
 ---Builds the tab configuration for profile tabs.
 ---@param profileType string
@@ -38,11 +60,16 @@ function ProfileTabsTabs.getTabArgs(profileType, profile, args)
 	local tabCounter = 1
 
 	-- Subpages: `defaultSubpages` always shown first, `specialSubpages` only when the page exists.
+	-- Subpages with `subpages` get a nested tab bar rendered under the active tab.
 	Array.forEach(ProfileTabsSubpages.getSubpageConfigs(profileType), function(subpage)
 		if subpage.default or Page.exists(profile .. '/' .. subpage.link) then
 			tabCounter = tabCounter + 1
 			tabArgs['name' .. tabCounter] = subpage.name
 			tabArgs['link' .. tabCounter] = profile .. '/' .. subpage.link
+			local nestedConfigs = ProfileTabsSubpages.getNestedSubpageConfigs(profileType, subpage.link)
+			if next(nestedConfigs) then
+				tabArgs['tabs' .. tabCounter] = ProfileTabsTabs._buildNestedTabs(profile, subpage.link, nestedConfigs)
+			end
 		end
 	end)
 

@@ -35,22 +35,26 @@ function ProfileTabsController._resolveProfileType(first, frame)
 	return PROFILE_TYPES[first] and first or 'player', frame
 end
 
----Builds the display title for profile pages, e.g. `Twizzler: Results` on subpages.
+---Builds the display title for profile pages, e.g. `Twizzler: Results` on subpages
+---or `Twizzler: Results: Pre-2020` on nested subpages. Returns nil on profile main pages.
 ---@private
 ---@param profileType string
 ---@param profile string
----@param subpageName string
+---@param subpageName string?
 ---@return string?
 function ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
-	if profile == subpageName then
+	if not subpageName then
 		return
 	end
 
 	local title = ProfileTabsApiDisplayTitle.get(profileType, profile) or profile
 
-	if ProfileTabsSubpages.isSubpage(profileType, subpageName) then
-		title = title .. ': ' .. subpageName
+	-- Split nested subpage paths into their parts and join with ': '
+	local parts = {}
+	for part in subpageName:gmatch('[^/]+') do
+		table.insert(parts, part)
 	end
+	title = title .. ': ' .. table.concat(parts, ': ')
 
 	return title
 end
@@ -66,8 +70,8 @@ function ProfileTabsController.run(first, frame)
 
 	local pageName = mw.title.getCurrentTitle().prefixedText
 
-	local subpageName = string.gsub(pageName, '.*/([^/]+)$', '%1')
-	local profile = string.gsub(pageName, '(.*)/[^/]-$', '%1')
+	local subpageName = ProfileTabsSubpages.getSubpageFromPageName(profileType, pageName)
+	local profile = subpageName and pageName:sub(1, -#subpageName - 2) or pageName
 
 	local displayTitle = args.title or ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
 

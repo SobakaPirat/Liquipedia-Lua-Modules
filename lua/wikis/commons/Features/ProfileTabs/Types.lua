@@ -14,6 +14,13 @@
 ---@class ProfileTabsSubpage
 ---@field name string?
 ---@field link string?
+---@field subpages (string|ProfileTabsSubpage)[]?
+
+---@class ProfileTabsSubpageConfig
+---@field name string
+---@field link string
+---@field default boolean
+---@field subpages (string|ProfileTabsSubpage)[]?
 
 ---@class ProfileTabsQueryTab
 ---@field displayName string?

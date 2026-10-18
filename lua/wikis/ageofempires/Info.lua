@@ -137,5 +137,35 @@ return {
 				swiss = {'matchdiff', 'gamediff'},
 			},
 		},
+		playerTabs = {
+			specialSubpages = {
+				'Results',
+				'Broadcasts',
+				'Tournaments',
+				{
+					'Matches',
+					subpages = {'2010-2019', '2020-2023', '2024-Present'},
+				},
+			},
+			runQueryTabs = {
+				{
+					displayName = 'Head to Head',
+					mediawikiForm = 'Match history',
+					form = 'H2H',
+					template = 'Head_to_head_query',
+					queryArgs = {player = '${player}'},
+				},
+			},
+		},
+		teamTabs = {
+			defaultSubpages = {
+				'Results',
+				'Matches',
+			},
+			specialSubpages = {
+				'Player Results',
+				'Tournaments',
+			},
+		},
 	},
 }

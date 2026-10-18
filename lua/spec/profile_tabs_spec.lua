@@ -9,7 +9,9 @@ describe('ProfileTabs Module', function()
 	ProfileTabs.getTabArgs = ProfileTabsTabs.getTabArgs
 	ProfileTabs.getSubpages = ProfileTabsSubpages.getSubpages
 	ProfileTabs.getSubpageConfigs = ProfileTabsSubpages.getSubpageConfigs
+	ProfileTabs.getNestedSubpageConfigs = ProfileTabsSubpages.getNestedSubpageConfigs
 	ProfileTabs.isSubpage = ProfileTabsSubpages.isSubpage
+	ProfileTabs.getSubpageFromPageName = ProfileTabsSubpages.getSubpageFromPageName
 	local Info = require('Module:Info')
 	local StringUtils = require('Module:StringUtils')
 
@@ -316,6 +318,129 @@ describe('ProfileTabs Module', function()
 		end)
 	end)
 
+	it('should include nested subpages in getSubpages as parent/child paths', function()
+		withProfileTabsConfig({
+			specialSubpages = {
+				{name = 'Results', link = 'Results', subpages = {'Pre-2020', 'Post'}},
+			},
+		}, function()
+			assert.are.same(
+				{'Results', 'Results/Pre-2020', 'Results/Post'},
+				ProfileTabs.getSubpages('player')
+			)
+		end)
+	end)
+
+	it('getNestedSubpageConfigs should return the nested configs of a subpage', function()
+		withProfileTabsConfig({
+			specialSubpages = {
+				{name = 'Results', link = 'Results', subpages = {'Pre-2020', {name = 'Post 2020', link = 'Post'}}},
+			},
+		}, function()
+			local nested = ProfileTabs.getNestedSubpageConfigs('player', 'Results')
+			assert.are.equal('Pre-2020', nested[1].name)
+			assert.are.equal('Pre-2020', nested[1].link)
+			assert.are.equal('Post 2020', nested[2].name)
+			assert.are.equal('Post', nested[2].link)
+		end)
+	end)
+
+	it('getNestedSubpageConfigs should return an empty table for subpages without nested config', function()
+		withProfileTabsConfig({
+			specialSubpages = {'Coaching'},
+		}, function()
+			assert.are.same({}, ProfileTabs.getNestedSubpageConfigs('player', 'Coaching'))
+			assert.are.same({}, ProfileTabs.getNestedSubpageConfigs('player', 'Results'))
+		end)
+	end)
+
+	it('should handle positional subpage config with subpages', function()
+		withProfileTabsConfig({
+			specialSubpages = {
+				'Results',
+				{'Matches', subpages = {'2010-2019', '2020-2023', '2024-Present'}},
+			},
+		}, function()
+			assert.are.same(
+				{'Results', 'Matches', 'Matches/2010-2019', 'Matches/2020-2023', 'Matches/2024-Present'},
+				ProfileTabs.getSubpages('player')
+			)
+			local configs = ProfileTabs.getSubpageConfigs('player')
+			local matches
+			for _, config in ipairs(configs) do
+				if config.link == 'Matches' then
+					matches = config
+				end
+			end
+			assert.is_not_nil(matches)
+			-- Positional `[1]` fills in both name and link
+			assert.are.same('Matches', matches.name)
+			assert.are.same('Matches', matches.link)
+			-- Nested subpages are normalized too, dropping the [1] position requirement
+			local nestedLinks = {}
+			for _, config in ipairs(ProfileTabs.getNestedSubpageConfigs('player', 'Matches')) do
+				table.insert(nestedLinks, config.link)
+			end
+			assert.are.same({'2010-2019', '2020-2023', '2024-Present'}, nestedLinks)
+		end)
+	end)
+
+	it('should treat link as optional and fall back to name', function()
+		withProfileTabsConfig({
+			specialSubpages = {
+				{name = 'Results', subpages = {{name = 'Pre-2020'}, {name = 'Post 2020', link = 'Post'}}},
+			},
+		}, function()
+			assert.are.same(
+				{'Results', 'Results/Pre-2020', 'Results/Post'},
+				ProfileTabs.getSubpages('player')
+			)
+			assert.are.same(
+				'Results/Pre-2020',
+				ProfileTabs.getSubpageFromPageName('player', 'Twizzler/Results/Pre-2020')
+			)
+			local nestedLinks = {}
+			for _, config in ipairs(ProfileTabs.getNestedSubpageConfigs('player', 'Results')) do
+				table.insert(nestedLinks, config.link)
+			end
+			assert.are.same({'Pre-2020', 'Post'}, nestedLinks)
+		end)
+	end)
+
+	it('isSubpage should match nested subpage paths', function()
+		withProfileTabsConfig({
+			specialSubpages = {
+				{name = 'Results', link = 'Results', subpages = {'Pre-2020', 'Post'}},
+			},
+		}, function()
+			assert.is_true(ProfileTabs.isSubpage('player', 'Results'))
+			assert.is_true(ProfileTabs.isSubpage('player', 'Results/Pre-2020'))
+			assert.is_true(ProfileTabs.isSubpage('player', 'Results/Post'))
+			-- Bare child names are not top-level subpages
+			assert.is_false(ProfileTabs.isSubpage('player', 'Pre-2020'))
+		end)
+	end)
+
+	it('should build nested tabs for subpages with subpages', function()
+		withProfileTabsConfig({
+			specialSubpages = {
+				{name = 'Results', link = 'Results', subpages = {'Pre-2020', 'Post'}},
+			},
+		}, function()
+			mw.title.new = function(page)
+				return {exists = page == 'Twizzler/Results' or page == 'Twizzler/Results/Pre-2020' or page == 'Twizzler/Results/Post'}
+			end
+
+			local result = ProfileTabs.getTabArgs('player', 'Twizzler')
+			assert.are.equal('Results', result.name2)
+			assert.are.equal('Twizzler/Results', result.link2)
+			assert.is_not_nil(result.tabs2)
+			local nestedHtml = tostring(result.tabs2)
+			assert.is_true(nestedHtml:find('Twizzler/Results/Pre-2020', nil, true) ~= nil)
+			assert.is_true(nestedHtml:find('Twizzler/Results/Post', nil, true) ~= nil)
+		end)
+	end)
+
 	describe('run', function()
 		local mockLpdb = require('Module:Mock/Lpdb')
 
@@ -392,6 +517,46 @@ describe('ProfileTabs Module', function()
 				assert.is_true(html:find('[', nil, true) ~= nil)
 				assert.is_true(html:find(expectedUrl, nil, true) ~= nil)
 				assert.is_true(html:find('Head to head query', nil, true) ~= nil)
+			end)
+		end)
+
+		it('should render on a nested subpage and link nested tabs', function()
+			mockLpdb.setUp()
+			titleStub = stub(mw.title, 'getCurrentTitle', function()
+				return {prefixedText = 'Twizzler/Results/Pre-2020'}
+			end)
+			mw.title.new = function(page)
+				return {exists = page == 'Twizzler/Results' or page == 'Twizzler/Results/Pre-2020' or page == 'Twizzler/Results/Post'}
+			end
+
+			withProfileTabsConfig({
+				specialSubpages = {
+					{name = 'Results', link = 'Results', subpages = {'Pre-2020', 'Post'}},
+				},
+			}, function()
+				local result = ProfileTabs.run({})
+				assert.is_not_nil(result)
+				local html = tostring(result)
+				-- Top-level tab links to the subpage, nested tabs link to the child pages
+				assert.is_true(html:find('Twizzler/Results', nil, true) ~= nil)
+				assert.is_true(html:find('Twizzler/Results/Pre-2020', nil, true) ~= nil)
+				assert.is_true(html:find('Twizzler/Results/Post', nil, true) ~= nil)
+			end)
+		end)
+
+		it('_getDisplayTitle should return proper display titles', function()
+			mockLpdb.setUp()
+			withProfileTabsConfig({
+				specialSubpages = {
+					{name = 'Results', link = 'Results', subpages = {'Pre-2020', 'Post'}},
+				},
+			}, function()
+				assert.is_nil(ProfileTabs._getDisplayTitle('player', 'Twizzler', nil))
+				assert.is_not_nil(ProfileTabs._getDisplayTitle('player', 'Twizzler', 'Results'))
+				local nestedTitle = ProfileTabs._getDisplayTitle('player', 'Twizzler', 'Results/Pre-2020')
+				assert.is_not_nil(nestedTitle)
+				assert.is_true(nestedTitle:find('Results', nil, true) ~= nil)
+				assert.is_true(nestedTitle:find('Pre-2020', nil, true) ~= nil)
 			end)
 		end)
 
