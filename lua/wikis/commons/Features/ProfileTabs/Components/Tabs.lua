@@ -44,14 +44,30 @@ local function hasLpdbMatches(profileType, profile)
 	return Table.isNotEmpty(matches)
 end
 
+---Reads a boolean flag from the template args first (e.g. `{{PlayerTabs|h2h=true}}`),
+---falling back to the wiki variable of the same name. Template args take precedence
+---so pages can override the wiki default.
+---@private
+---@param args table? Template arguments passed to the PlayerTabs template
+---@param name string
+---@return boolean
+local function readFlag(args, name)
+	local argValue = args and args[name]
+	if argValue ~= nil then
+		return Logic.readBool(argValue)
+	end
+	return Logic.readBool(Variables.varDefault(name))
+end
+
 ---Builds the tab configuration for profile tabs.
 ---Overview is always shown; all other tabs are special, i.e. only shown when the subpage exists.
 ---The Results tab is additionally shown when the player/team has matches stored in LPDB,
 ---even if the Results subpage does not exist (in which case it links to the subpage anyway).
 ---@param profileType string
 ---@param profile string The page name of the player/team (without the page prefix)
+---@param args table? Template arguments passed to the PlayerTabs template
 ---@return table A table with `nameN`/`linkN` entries compatible with Tabs.static
-function ProfileTabsTabs.getTabArgs(profileType, profile)
+function ProfileTabsTabs.getTabArgs(profileType, profile, args)
 	local settings = PROFILE_TYPES[profileType]
 
 	local tabArgs = {
@@ -68,12 +84,12 @@ function ProfileTabsTabs.getTabArgs(profileType, profile)
 		end
 
 		-- Run query replacement tab, rendered via QueryLink (lighthouse + legacy MediaWiki RunQuery urls)
-		-- Replaces the plain subpage tab in its slot. Only shown when the `replaceTabs` wiki-variable
-		-- is true and available results data is present. The variable is checked first since it is
-		-- usually not set, avoiding further checks.
+		-- Replaces the plain subpage tab in its slot. Only shown when the `replaceTabs` flag
+		-- (template arg or wiki-variable) is true and available results data is present.
+		-- The flag is checked first since it is usually not set, avoiding further checks.
 		local runQueryTab = settings.replaceTabs and settings.replaceTabs[tabName]
 		if runQueryTab
-			and Logic.readBool(Variables.varDefault('replaceTabs'))
+			and readFlag(args, 'replaceTabs')
 			and (Page.exists(profile .. '/Results') or hasLpdbMatches(profileType, profile)) then
 			tabCounter = tabCounter + 1
 			tabArgs['name' .. tabCounter] = QueryLink{
@@ -95,9 +111,9 @@ function ProfileTabsTabs.getTabArgs(profileType, profile)
 	end)
 
 	-- Head to head query tab, rendered via QueryLink (lighthouse + legacy MediaWiki RunQuery urls)
-	-- Only shown when the `h2h` wiki-variable is true and available results data is present.
-	-- The variable is checked first since it is usually not set, avoiding further checks.
-	if Logic.readBool(Variables.varDefault('h2h'))
+	-- Only shown when the `h2h` flag (template arg or wiki-variable) is true and available results
+	-- data is present. The flag is checked first since it is usually not set, avoiding further checks.
+	if readFlag(args, 'h2h')
 		and (Page.exists(profile .. '/Results') or hasLpdbMatches(profileType, profile)) then
 		tabCounter = tabCounter + 1
 		tabArgs['name' .. tabCounter] = QueryLink{
@@ -110,10 +126,10 @@ function ProfileTabsTabs.getTabArgs(profileType, profile)
 	end
 
 	-- Statistics query tab, rendered via QueryLink (lighthouse + legacy MediaWiki RunQuery urls)
-	-- Only shown when the `statistics` wiki-variable is true and available results data is present.
-	-- The variable is checked first since it is usually not set, avoiding further checks.
+	-- Only shown when the `statistics` flag (template arg or wiki-variable) is true and available
+	-- results data is present. The flag is checked first since it is usually not set, avoiding further checks.
 	if settings.statistics
-		and Logic.readBool(Variables.varDefault('statistics'))
+		and readFlag(args, 'statistics')
 		and (Page.exists(profile .. '/Results') or hasLpdbMatches(profileType, profile)) then
 		tabCounter = tabCounter + 1
 		tabArgs['name' .. tabCounter] = QueryLink{

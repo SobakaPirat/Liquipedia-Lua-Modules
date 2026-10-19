@@ -84,7 +84,7 @@ function ProfileTabsController.run(first, frame)
 		title = displayTitle,
 	}
 
-	return Tabs.static(ProfileTabsComponentsTabs.getTabArgs(profileType, profile))
+	return Tabs.static(ProfileTabsComponentsTabs.getTabArgs(profileType, profile, args))
 end
 
 return ProfileTabsController
