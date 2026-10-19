@@ -18,6 +18,7 @@
 ---@field lpdbQuery string
 ---@field displayField string
 ---@field tabs string[] Special subpage tabs, shown only when the page exists
+---@field tabDisplay table<string, string>? Optional display names for tabs, keyed by subpage name
 ---@field headToHead ProfileTabsHeadToHead
 
 ---@type table<string, ProfileTypeDefinition>
@@ -38,6 +39,9 @@ local PROFILE_TYPES = {
 			'Maps Created',
 			'Notable Wins',
 			'VODs',
+		},
+		tabDisplay = {
+			Broadcasts = 'Talent',
 		},
 		headToHead = {
 			mediawikiForm = 'Match history',
@@ -63,9 +67,9 @@ local PROFILE_TYPES = {
 			'Organized Events',
 		},
 		headToHead = {
-			mediawikiForm = 'Match history',
+			mediawikiForm = 'Head2head',
 			form = 'H2H',
-			template = 'Head_to_head_query',
+			template = 'Headtohead',
 			queryArg = 'team',
 		},
 	},

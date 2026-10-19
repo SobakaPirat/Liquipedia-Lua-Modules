@@ -12,6 +12,10 @@ local ProfileTabsController = Lua.import('Module:Features/ProfileTabs/Controller
 ---Template entry point; forwards to the layer that orchestrates and renders the tabs.
 ---@param frame Frame
 ---@return Renderable?
+local function run(frame)
+	return ProfileTabsController.run(frame)
+end
+
 return {
-	run = ProfileTabsController.run,
+	run = run,
 }

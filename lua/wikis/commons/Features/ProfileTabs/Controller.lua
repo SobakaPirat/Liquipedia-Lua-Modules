@@ -41,11 +41,11 @@ end
 ---@param pageName string
 ---@return string?
 function ProfileTabsController._getSubpageName(profileType, pageName)
-for _, tabName in ipairs(PROFILE_TYPES[profileType].tabs) do
-if pageName:sub(-#tabName - 1) == '/' .. tabName then
-return tabName
-end
-end
+	for _, tabName in ipairs(PROFILE_TYPES[profileType].tabs) do
+		if pageName:sub(-#tabName - 1) == '/' .. tabName then
+			return tabName
+		end
+	end
 end
 
 ---Builds the display title for profile pages, e.g. `Twizzler: Results` on subpages.
@@ -56,12 +56,12 @@ end
 ---@param subpageName string?
 ---@return string?
 function ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
-if not subpageName then
-return
-end
+	if not subpageName then
+		return
+	end
 
-local title = ProfileTabsApiDisplayTitle.get(profileType, profile) or profile
-return title .. ': ' .. subpageName
+	local title = ProfileTabsApiDisplayTitle.get(profileType, profile) or profile
+	return title .. ': ' .. subpageName
 end
 
 ---Template entry point.
@@ -69,22 +69,22 @@ end
 ---@param frame Frame?
 ---@return Renderable?
 function ProfileTabsController.run(first, frame)
-local profileType, resolvedFrame = ProfileTabsController._resolveProfileType(first, frame)
-frame = resolvedFrame or frame
-local args = Arguments.getArgs(frame)
+	local profileType, resolvedFrame = ProfileTabsController._resolveProfileType(first, frame)
+	frame = resolvedFrame or frame
+	local args = Arguments.getArgs(frame)
 
-local pageName = mw.title.getCurrentTitle().prefixedText
+	local pageName = mw.title.getCurrentTitle().prefixedText
 
-local subpageName = ProfileTabsController._getSubpageName(profileType, pageName)
-local profile = subpageName and pageName:sub(1, -#subpageName - 2) or pageName
+	local subpageName = ProfileTabsController._getSubpageName(profileType, pageName)
+	local profile = subpageName and pageName:sub(1, -#subpageName - 2) or pageName
 
-local displayTitle = args.title or ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
+	local displayTitle = args.title or ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
 
-Page.setDisplayTitle{
-title = displayTitle,
-}
+	Page.setDisplayTitle{
+		title = displayTitle,
+	}
 
-return Tabs.static(ProfileTabsComponentsTabs.getTabArgs(profileType, profile))
+	return Tabs.static(ProfileTabsComponentsTabs.getTabArgs(profileType, profile))
 end
 
 return ProfileTabsController
