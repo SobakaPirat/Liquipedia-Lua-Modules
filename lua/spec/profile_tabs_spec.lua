@@ -26,6 +26,10 @@ describe('ProfileTabs Module', function()
 		return expectedMediawikiUrl('Head2head', 'Headtohead', 'team', profile)
 	end
 
+	local function expectedPlayerStatsUrl(profile)
+		return expectedMediawikiUrl('PlayerStats', 'Player statistics', 'player', profile)
+	end
+
 	local origTitleNew
 	local titleStub
 	before_each(function()
@@ -54,6 +58,12 @@ describe('ProfileTabs Module', function()
 	-- Defines the `h2h` wiki-variable so the Head to head tab is shown
 	local function withH2HVariable(func)
 		mw.ext.VariablesLua.vardefine('h2h', 'true')
+		return func()
+	end
+
+	-- Defines the `statistics` wiki-variable so the Statistics tab is shown
+	local function withStatisticsVariable(func)
+		mw.ext.VariablesLua.vardefine('statistics', 'true')
 		return func()
 	end
 
@@ -164,6 +174,58 @@ describe('ProfileTabs Module', function()
 					local result = ProfileTabs.getTabArgs('player', 'Viswanathan Anand')
 					local rendered = tostring(result.name3)
 					assert.is_true(rendered:find(expectedPlayerH2HUrl('Viswanathan Anand'), nil, true) ~= nil)
+				end)
+			end)
+		end)
+
+		it('should add a Statistics QueryLink when Results exists and statistics is set', function()
+			withExistingPages({'Twizzler/Results'}, function()
+				withStatisticsVariable(function()
+					local result = ProfileTabs.getTabArgs('player', 'Twizzler')
+					assert.are.equal('table', type(result.name3))
+					-- The QueryLink widget provides the link itself, no separate link arg
+					assert.is_nil(result.link3)
+					assert.is_nil(result.name4)
+
+					local rendered = tostring(result.name3)
+					assert.is_true(rendered:find(expectedPlayerStatsUrl('Twizzler'), nil, true) ~= nil)
+					assert.is_true(rendered:find('Statistics', nil, true) ~= nil)
+				end)
+			end)
+		end)
+
+		it('should not add the Statistics tab when the statistics variable is not set', function()
+			withExistingPages({'Twizzler/Results'}, function()
+				local result = ProfileTabs.getTabArgs('player', 'Twizzler')
+				assert.are.equal('Results', result.name2)
+				assert.is_nil(result.name3)
+			end)
+		end)
+
+		it('should not add the Statistics tab without Results', function()
+			withExistingPages({'Twizzler/Awards'}, function()
+				withStatisticsVariable(function()
+					local result = ProfileTabs.getTabArgs('player', 'Twizzler')
+					assert.are.equal('Awards', result.name2)
+					assert.is_nil(result.name3)
+				end)
+			end)
+		end)
+
+		it('should add both the Head to head and Statistics tabs when both variables are set', function()
+			withExistingPages({'Twizzler/Results'}, function()
+				withH2HVariable(function()
+					withStatisticsVariable(function()
+						local result = ProfileTabs.getTabArgs('player', 'Twizzler')
+						assert.are.equal('table', type(result.name3))
+						assert.are.equal('table', type(result.name4))
+						assert.is_nil(result.name5)
+
+						local h2h = tostring(result.name3)
+						assert.is_true(h2h:find('Head to head', nil, true) ~= nil)
+						local stats = tostring(result.name4)
+						assert.is_true(stats:find(expectedPlayerStatsUrl('Twizzler'), nil, true) ~= nil)
+					end)
 				end)
 			end)
 		end)

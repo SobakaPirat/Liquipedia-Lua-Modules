@@ -12,6 +12,14 @@
 ---@field template string
 ---@field queryArg string The query argument name the profile is passed as
 
+---Statistics run query configuration, rendered when the `statistics` wiki-variable is true
+---and the Results subpage exists.
+---@class ProfileTabsStatistics
+---@field mediawikiForm string
+---@field form string
+---@field template string
+---@field queryArg string The query argument name the profile is passed as
+
 ---Per-type metadata that drives all player/team differences.
 ---@class ProfileTypeDefinition
 ---@field lpdbType string
@@ -20,6 +28,7 @@
 ---@field tabs string[] Special subpage tabs, shown only when the page exists
 ---@field tabDisplay table<string, string>? Optional display names for tabs, keyed by subpage name
 ---@field headToHead ProfileTabsHeadToHead
+---@field statistics ProfileTabsStatistics?
 
 ---@type table<string, ProfileTypeDefinition>
 local PROFILE_TYPES = {
@@ -47,6 +56,12 @@ local PROFILE_TYPES = {
 			mediawikiForm = 'Match history',
 			form = 'H2H',
 			template = 'Head_to_head_query',
+			queryArg = 'player',
+		},
+		statistics = {
+			mediawikiForm = 'PlayerStats',
+			form = 'PlayerStats/LH',
+			template = 'Player statistics',
 			queryArg = 'player',
 		},
 	},

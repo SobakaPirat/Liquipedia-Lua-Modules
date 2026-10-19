@@ -22,6 +22,7 @@ local ProfileTabsTabs = {}
 ---Builds the tab configuration for profile tabs.
 ---Overview is always shown; all other tabs are special, i.e. only shown when the subpage exists.
 ---The head to head query tab is added when the `h2h` wiki-variable is true and the Results subpage exists.
+---The statistics query tab is added when the `statistics` wiki-variable is true and the Results subpage exists.
 ---@param profileType string
 ---@param profile string The page name of the player/team (without the page prefix)
 ---@return table A table with `nameN`/`linkN` entries compatible with Tabs.static
@@ -55,6 +56,22 @@ function ProfileTabsTabs.getTabArgs(profileType, profile)
 			template = settings.headToHead.template,
 			display = 'Head to head',
 			queryArgs = {[settings.headToHead.queryArg] = profile},
+		}
+	end
+
+	-- Statistics query tab, rendered via QueryLink (lighthouse + legacy MediaWiki RunQuery urls)
+	-- Only shown when the `statistics` wiki-variable is true and the Results subpage exists.
+	-- The variable is checked first since it is usually not set, avoiding the Page.exists check.
+	if settings.statistics
+		and Logic.readBool(Variables.varDefault('statistics'))
+		and Page.exists(profile .. '/Results') then
+		tabCounter = tabCounter + 1
+		tabArgs['name' .. tabCounter] = QueryLink{
+			mediawikiForm = settings.statistics.mediawikiForm,
+			form = settings.statistics.form,
+			template = settings.statistics.template,
+			display = 'Statistics',
+			queryArgs = {[settings.statistics.queryArg] = profile},
 		}
 	end
 
