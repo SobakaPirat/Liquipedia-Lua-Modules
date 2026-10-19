@@ -67,6 +67,25 @@ function ProfileTabsTabs.getTabArgs(profileType, profile)
 			showTab = hasLpdbMatches(profileType, profile)
 		end
 
+		-- Run query replacement tab, rendered via QueryLink (lighthouse + legacy MediaWiki RunQuery urls)
+		-- Replaces the plain subpage tab in its slot. Only shown when the `replaceTabs` wiki-variable
+		-- is true and available results data is present. The variable is checked first since it is
+		-- usually not set, avoiding further checks.
+		local runQueryTab = settings.replaceTabs and settings.replaceTabs[tabName]
+		if runQueryTab
+			and Logic.readBool(Variables.varDefault('replaceTabs'))
+			and (Page.exists(profile .. '/Results') or hasLpdbMatches(profileType, profile)) then
+			tabCounter = tabCounter + 1
+			tabArgs['name' .. tabCounter] = QueryLink{
+				mediawikiForm = runQueryTab.mediawikiForm,
+				form = runQueryTab.form,
+				template = runQueryTab.template,
+				display = runQueryTab.display,
+				queryArgs = {[runQueryTab.queryArg] = profile},
+			}
+			return
+		end
+
 		if showTab then
 			tabCounter = tabCounter + 1
 			local displayName = settings.tabDisplay and settings.tabDisplay[tabName] or tabName

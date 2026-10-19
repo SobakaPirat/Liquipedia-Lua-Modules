@@ -30,6 +30,26 @@ describe('ProfileTabs Module', function()
 		return expectedMediawikiUrl('PlayerStats', 'Player statistics', 'player', profile)
 	end
 
+	local function expectedPlayerResultsUrl(profile)
+		return expectedMediawikiUrl('Player Results', 'Player results', 'player', profile)
+	end
+
+	local function expectedPlayerMatchesUrl(profile)
+		return expectedMediawikiUrl('Player Matches', 'Player Matches', 'player', profile)
+	end
+
+	local function expectedTeamResultsUrl(profile)
+		return expectedMediawikiUrl('Team Results', 'Team results', 'team', profile)
+	end
+
+	local function expectedTeamMatchesUrl(profile)
+		return expectedMediawikiUrl('Team Matches', 'Team matches', 'team', profile)
+	end
+
+	local function expectedTeamPlayerResultsUrl(profile)
+		return expectedMediawikiUrl('Team Player Results', 'Team player results', 'team', profile)
+	end
+
 	local origTitleNew
 	local titleStub
 	before_each(function()
@@ -64,6 +84,12 @@ describe('ProfileTabs Module', function()
 	-- Defines the `statistics` wiki-variable so the Statistics tab is shown
 	local function withStatisticsVariable(func)
 		mw.ext.VariablesLua.vardefine('statistics', 'true')
+		return func()
+	end
+
+	-- Defines the `replaceTabs` wiki-variable so the run query replacement tabs are shown
+	local function withQueryTabsVariable(func)
+		mw.ext.VariablesLua.vardefine('replaceTabs', 'true')
 		return func()
 	end
 
@@ -266,6 +292,88 @@ describe('ProfileTabs Module', function()
 					local rendered = tostring(result.name3)
 					assert.is_true(rendered:find(expectedPlayerH2HUrl('Rambo'), nil, true) ~= nil)
 					assert.is_true(rendered:find('Head to head', nil, true) ~= nil)
+				end)
+			end)
+		end)
+
+		it('should replace the Results tab with a Player Results QueryLink when replaceTabs is set', function()
+			withExistingPages({'Twizzler/Results'}, function()
+				withQueryTabsVariable(function()
+					local result = ProfileTabs.getTabArgs('player', 'Twizzler')
+					-- Results slot is taken over by the run query tab: name2 is the QueryLink,
+					-- there is no separate link2 argument
+					assert.are.equal('table', type(result.name2))
+					assert.is_nil(result.link2)
+
+					local rendered = tostring(result.name2)
+					assert.is_true(rendered:find(expectedPlayerResultsUrl('Twizzler'), nil, true) ~= nil)
+					assert.is_true(rendered:find('Results', nil, true) ~= nil)
+				end)
+			end)
+		end)
+
+		it('should replace the Played Matches tab with a Player Matches QueryLink when replaceTabs is set', function()
+			withExistingPages({'Twizzler/Results'}, function()
+				withQueryTabsVariable(function()
+					local result = ProfileTabs.getTabArgs('player', 'Twizzler')
+					-- Like headToHead/statistics, the run query tab only depends on the Results
+					-- data, so it is shown even when the 'Played Matches' subpage does not exist.
+					assert.are.equal('table', type(result.name3))
+					assert.is_nil(result.link3)
+
+					local rendered = tostring(result.name3)
+					assert.is_true(rendered:find(expectedPlayerMatchesUrl('Twizzler'), nil, true) ~= nil)
+					assert.is_true(rendered:find('Matches', nil, true) ~= nil)
+				end)
+			end)
+		end)
+
+		it('should not replace tabs when the replaceTabs variable is not set', function()
+			withExistingPages({'Twizzler/Results'}, function()
+				local result = ProfileTabs.getTabArgs('player', 'Twizzler')
+				assert.are.equal('Results', result.name2)
+				assert.are.equal('Twizzler/Results', result.link2)
+				assert.is_nil(result.name3)
+			end)
+		end)
+
+		it('should not replace tabs without results data', function()
+			withExistingPages({'Twizzler/Awards'}, function()
+				withQueryTabsVariable(function()
+					local result = ProfileTabs.getTabArgs('player', 'Twizzler')
+					assert.are.equal('Awards', result.name2)
+					assert.is_nil(result.name3)
+				end)
+			end)
+		end)
+
+		it('should replace team tabs with run query tabs when replaceTabs is set', function()
+			withExistingPages({'rambo-fans/Results'}, function()
+				withQueryTabsVariable(function()
+					local result = ProfileTabs.getTabArgs('team', 'rambo-fans')
+					-- Results, Played Matches and Player Results take over the first three slots
+					assert.are.equal('table', type(result.name2))
+					assert.are.equal('table', type(result.name3))
+					assert.are.equal('table', type(result.name4))
+					assert.is_nil(result.name5)
+
+					assert.is_true(tostring(result.name2):find(expectedTeamResultsUrl('rambo-fans'), nil, true) ~= nil)
+					assert.is_true(tostring(result.name3):find(expectedTeamMatchesUrl('rambo-fans'), nil, true) ~= nil)
+					assert.is_true(tostring(result.name4):find(expectedTeamPlayerResultsUrl('rambo-fans'), nil, true) ~= nil)
+				end)
+			end)
+		end)
+
+		it('should replace tabs based on lpdb matches even when the Results subpage is missing', function()
+			withExistingPages({}, function()
+				withQueryTabsVariable(function()
+					local result = ProfileTabs.getTabArgs('player', 'Rambo')
+					-- 'Rambo' has lpdb matches, so the run query tabs take over despite no subpages
+					assert.are.equal('table', type(result.name2))
+					assert.are.equal('table', type(result.name3))
+
+					assert.is_true(tostring(result.name2):find(expectedPlayerResultsUrl('Rambo'), nil, true) ~= nil)
+					assert.is_true(tostring(result.name3):find(expectedPlayerMatchesUrl('Rambo'), nil, true) ~= nil)
 				end)
 			end)
 		end)
