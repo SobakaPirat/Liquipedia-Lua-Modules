@@ -9,7 +9,7 @@ local Lua = require('Module:Lua')
 
 local ProfileTabsController = Lua.import('Module:Features/ProfileTabs/Controller')
 
----Template entry point; forwards to the layer that orchestrates and renders the tabs.
+---Template entry point.
 ---@param frame Frame
 ---@return Renderable?
 local function run(frame)

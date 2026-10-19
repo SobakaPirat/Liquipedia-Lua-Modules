@@ -5,40 +5,38 @@
 -- Please see https://github.com/Liquipedia/Lua-Modules to contribute
 --
 
----Head to head run query configuration, rendered when the Results subpage exists.
+---Head to head query form configuration, rendered when the Results subpage exists.
 ---@class ProfileTabsHeadToHead
 ---@field mediawikiForm string
 ---@field form string
 ---@field template string
----@field queryArg string The query argument name the profile is passed as
+---@field queryArg string
 
----Statistics run query configuration, rendered when the `statistics` wiki-variable is true
----and the Results subpage exists.
+---Statistics query form configuration, rendered when the `statistics` flag is set and results exist.
 ---@class ProfileTabsStatistics
 ---@field mediawikiForm string
 ---@field form string
 ---@field template string
----@field queryArg string The query argument name the profile is passed as
+---@field queryArg string
 
----Run query configuration for replacement tabs, rendered like headToHead/statistics
----but in the position of the replaced tab, so it takes over the tab's slot.
----@class ProfileTabsRunQuery
+---Query form configuration for tabsToForms, taking over the replaced tab's slot.
+---@class ProfileTabsToForms
 ---@field display string
 ---@field mediawikiForm string
 ---@field form string
 ---@field template string
----@field queryArg string The query argument name the profile is passed as
+---@field queryArg string
 
 ---Per-type metadata that drives all player/team differences.
 ---@class ProfileTypeDefinition
 ---@field lpdbType string
 ---@field lpdbQuery string
 ---@field displayField string
----@field tabs string[] Special subpage tabs, shown only when the page exists
----@field tabDisplay table<string, string>? Optional display names for tabs, keyed by subpage name
+---@field tabs string[]
+---@field tabDisplay table<string, string>?
 ---@field headToHead ProfileTabsHeadToHead
 ---@field statistics ProfileTabsStatistics?
----@field replaceTabs table<string, ProfileTabsRunQuery>? Keyed by the tab name they replace
+---@field tabsToForms table<string, ProfileTabsToForms>?
 
 ---@type table<string, ProfileTypeDefinition>
 local PROFILE_TYPES = {
@@ -74,7 +72,7 @@ local PROFILE_TYPES = {
 			template = 'Player statistics',
 			queryArg = 'player',
 		},
-		replaceTabs = {
+		tabsToForms = {
 			['Results'] = {
 				display = 'Results',
 				mediawikiForm = 'Player Results',
@@ -86,7 +84,7 @@ local PROFILE_TYPES = {
 				display = 'Matches',
 				mediawikiForm = 'Player Matches',
 				form = 'Player Matches/LH',
-				template = 'Player Matches',
+				template = 'Player matches',
 				queryArg = 'player',
 			},
 		},
@@ -113,7 +111,7 @@ local PROFILE_TYPES = {
 			template = 'Headtohead',
 			queryArg = 'team',
 		},
-		replaceTabs = {
+		tabsToForms = {
 			['Results'] = {
 				display = 'Team Results',
 				mediawikiForm = 'Team Results',

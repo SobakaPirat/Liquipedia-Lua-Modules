@@ -8,19 +8,24 @@
 
 local Lua = require('Module:Lua')
 
+local Condition = Lua.import('Module:Condition')
 local PROFILE_TYPES = Lua.import('Module:Features/ProfileTabs/Types')
 
 local ProfileTabsApiDisplayTitle = {}
 
----Returns the profile's display title from LPDB, or `nil` when the page does not exist.
+---Returns the display title from LPDB, or `nil` when the page does not exist.
 ---@param profileType string
----@param profile string The page name of the player/team (without the page prefix)
+---@param profile string
 ---@return string?
 function ProfileTabsApiDisplayTitle.get(profileType, profile)
 	local settings = PROFILE_TYPES[profileType]
 
+	local conditions = Condition.Tree(Condition.BooleanOperator.all):add(
+		Condition.Node('pagename', Condition.Comparator.eq, profile:gsub(' ', '_'))
+	):toString()
+
 	local data = mw.ext.LiquipediaDB.lpdb(settings.lpdbType, {
-		conditions = '[[pagename::' .. profile:gsub(' ', '_') .. ']]',
+		conditions = conditions,
 		query = settings.lpdbQuery,
 	})
 

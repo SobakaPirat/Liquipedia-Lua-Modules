@@ -19,24 +19,15 @@ local PROFILE_TYPES = Lua.import('Module:Features/ProfileTabs/Types')
 
 local ProfileTabsController = {}
 
----Resolves the profile type from an explicit arg or `target`, falling back to `player` for direct invocations.
+---Resolves the profile type from the `target` arg.
 ---@private
----@param first string|table Either the profile type or the frame.
----@param frame Frame?
----@return string profileType
----@return table|nil frame
-function ProfileTabsController._resolveProfileType(first, frame)
-	-- Direct invocation: the first argument is the frame itself, so read `target` from its args.
-	if type(first) ~= 'string' then
-		local args = Arguments.getArgs(first)
-		return PROFILE_TYPES[args.target] and args.target or 'player', first
-	end
-
-	return PROFILE_TYPES[first] and first or 'player', frame
+---@param args table
+---@return string
+function ProfileTabsController._resolveProfileType(args)
+	return PROFILE_TYPES[args.target] and args.target or 'player'
 end
 
 ---Returns the subpage tab name `pageName` belongs to, or nil when on the profile main page.
----A page is on a subpage when its name ends in `/` + one of the profile type's tab names.
 ---@private
 ---@param profileType string
 ---@param pageName string
@@ -49,8 +40,7 @@ function ProfileTabsController._getSubpageName(profileType, pageName)
 	end
 end
 
----Builds the display title for profile pages, e.g. `Twizzler: Results` on subpages.
----Returns nil on profile main pages.
+---Builds the display title for profile pages.
 ---@private
 ---@param profileType string
 ---@param profile string
@@ -65,24 +55,17 @@ function ProfileTabsController._getDisplayTitle(profileType, profile, subpageNam
 	return title .. ': ' .. subpageName
 end
 
----Template entry point.
----@param first string|table Either the profile type or the frame.
----@param frame Frame?
+---@param frame Frame
 ---@return Renderable?
-function ProfileTabsController.run(first, frame)
-	local profileType, resolvedFrame = ProfileTabsController._resolveProfileType(first, frame)
-	frame = resolvedFrame or frame
+function ProfileTabsController.run(frame)
 	local args = Arguments.getArgs(frame)
+	local profileType = ProfileTabsController._resolveProfileType(args)
 
 	local pageName = mw.title.getCurrentTitle().prefixedText
 
 	local subpageName = ProfileTabsController._getSubpageName(profileType, pageName)
 	local profile = subpageName and pageName:sub(1, -#subpageName - 2) or pageName
 
-	-- Resolve the display title from the `displayTitle` arg:
-	-- - nil -> auto-generate from the subpage (e.g. "Twizzler: Results"),
-	-- - false -> restore the default page title (e.g. `{{...|displayTitle=false}}`),
-	-- - any other string -> use it as the custom title directly.
 	local displayTitle
 	if args.displayTitle == nil then
 		displayTitle = ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)

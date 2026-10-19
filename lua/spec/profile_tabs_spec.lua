@@ -11,7 +11,7 @@ describe('ProfileTabs Module', function()
 	ProfileTabs.getTabArgs = ProfileTabsTabs.getTabArgs
 	ProfileTabs.getSubpageName = Controller._getSubpageName
 
-	-- Builds the expected mediawiki run query url the same way Widget/QueryLink does
+	-- Builds the expected mediawiki query form url the same way Widget/QueryLink does
 	local function expectedMediawikiUrl(mediawikiForm, template, queryArg, profile)
 		return tostring(mw.uri.fullUrl(
 			'Special:RunQuery/' .. mediawikiForm,
@@ -88,9 +88,9 @@ describe('ProfileTabs Module', function()
 		return func()
 	end
 
-	-- Defines the `replaceTabs` wiki-variable so the run query replacement tabs are shown
-	local function withQueryTabsVariable(func)
-		mw.ext.VariablesLua.vardefine('replaceTabs', 'true')
+	-- Defines the `tabsToForms` wiki-variable so the query form tabs are shown
+	local function withTabsToFormsVariable(func)
+		mw.ext.VariablesLua.vardefine('tabsToForms', 'true')
 		return func()
 	end
 
@@ -287,9 +287,9 @@ describe('ProfileTabs Module', function()
 			end)
 		end)
 
-		it('should replace the Results tab when replaceTabs is passed as a template arg', function()
+		it('should replace the Results tab when tabsToForms is passed as a template arg', function()
 			withExistingPages({'Twizzler/Results'}, function()
-				local result = ProfileTabs.getTabArgs('player', 'Twizzler', {replaceTabs = 'true'})
+				local result = ProfileTabs.getTabArgs('player', 'Twizzler', {tabsToForms = 'true'})
 				assert.are.equal('table', type(result.name2))
 				assert.is_nil(result.link2)
 
@@ -341,11 +341,11 @@ describe('ProfileTabs Module', function()
 			end)
 		end)
 
-		it('should replace the Results tab with a Player Results QueryLink when replaceTabs is set', function()
+		it('should replace the Results tab with a Player Results QueryLink when tabsToForms is set', function()
 			withExistingPages({'Twizzler/Results'}, function()
-				withQueryTabsVariable(function()
+				withTabsToFormsVariable(function()
 					local result = ProfileTabs.getTabArgs('player', 'Twizzler')
-					-- Results slot is taken over by the run query tab: name2 is the QueryLink,
+					-- Results slot is taken over by the query form tab: name2 is the QueryLink,
 					-- there is no separate link2 argument
 					assert.are.equal('table', type(result.name2))
 					assert.is_nil(result.link2)
@@ -357,11 +357,11 @@ describe('ProfileTabs Module', function()
 			end)
 		end)
 
-		it('should replace the Played Matches tab with a Player Matches QueryLink when replaceTabs is set', function()
+		it('should replace the Played Matches tab with a Player Matches QueryLink when tabsToForms is set', function()
 			withExistingPages({'Twizzler/Results'}, function()
-				withQueryTabsVariable(function()
+				withTabsToFormsVariable(function()
 					local result = ProfileTabs.getTabArgs('player', 'Twizzler')
-					-- Like headToHead/statistics, the run query tab only depends on the Results
+					-- Like headToHead/statistics, the query form tab only depends on the Results
 					-- data, so it is shown even when the 'Played Matches' subpage does not exist.
 					assert.are.equal('table', type(result.name3))
 					assert.is_nil(result.link3)
@@ -373,7 +373,7 @@ describe('ProfileTabs Module', function()
 			end)
 		end)
 
-		it('should not replace tabs when the replaceTabs variable is not set', function()
+		it('should not replace tabs when the tabsToForms variable is not set', function()
 			withExistingPages({'Twizzler/Results'}, function()
 				local result = ProfileTabs.getTabArgs('player', 'Twizzler')
 				assert.are.equal('Results', result.name2)
@@ -384,7 +384,7 @@ describe('ProfileTabs Module', function()
 
 		it('should not replace tabs without results data', function()
 			withExistingPages({'Twizzler/Awards'}, function()
-				withQueryTabsVariable(function()
+				withTabsToFormsVariable(function()
 					local result = ProfileTabs.getTabArgs('player', 'Twizzler')
 					assert.are.equal('Awards', result.name2)
 					assert.is_nil(result.name3)
@@ -392,9 +392,9 @@ describe('ProfileTabs Module', function()
 			end)
 		end)
 
-		it('should replace team tabs with run query tabs when replaceTabs is set', function()
+		it('should replace team tabs with query form tabs when tabsToForms is set', function()
 			withExistingPages({'rambo-fans/Results'}, function()
-				withQueryTabsVariable(function()
+				withTabsToFormsVariable(function()
 					local result = ProfileTabs.getTabArgs('team', 'rambo-fans')
 					-- Results, Played Matches and Player Results take over the first three slots
 					assert.are.equal('table', type(result.name2))
@@ -411,9 +411,9 @@ describe('ProfileTabs Module', function()
 
 		it('should replace tabs based on lpdb matches even when the Results subpage is missing', function()
 			withExistingPages({}, function()
-				withQueryTabsVariable(function()
+				withTabsToFormsVariable(function()
 					local result = ProfileTabs.getTabArgs('player', 'Rambo')
-					-- 'Rambo' has lpdb matches, so the run query tabs take over despite no subpages
+					-- 'Rambo' has lpdb matches, so the query form tabs take over despite no subpages
 					assert.are.equal('table', type(result.name2))
 					assert.are.equal('table', type(result.name3))
 
@@ -537,26 +537,16 @@ describe('ProfileTabs Module', function()
 		end)
 
 		describe('target parameter', function()
-			it('should resolve player from an explicit profileType', function()
-				local profileType, frame = ProfileTabs._resolveProfileType('player', {title = 'X'})
-				assert.are.equal('player', profileType)
-				assert.are.same({title = 'X'}, frame)
-			end)
-
 			it('should resolve team from the template target arg', function()
-				local profileType, frame = ProfileTabs._resolveProfileType({target = 'team'})
-				assert.are.equal('team', profileType)
-				assert.are.same({target = 'team'}, frame)
+				assert.are.equal('team', ProfileTabs._resolveProfileType({target = 'team'}))
 			end)
 
 			it('should fall back to player when target is unknown', function()
-				local profileType = ProfileTabs._resolveProfileType({target = 'bogus'})
-				assert.are.equal('player', profileType)
+				assert.are.equal('player', ProfileTabs._resolveProfileType({target = 'bogus'}))
 			end)
 
 			it('should fall back to player when target is missing', function()
-				local profileType = ProfileTabs._resolveProfileType({})
-				assert.are.equal('player', profileType)
+				assert.are.equal('player', ProfileTabs._resolveProfileType({}))
 			end)
 
 			it('should use the team tabs when running with target=team', function()
