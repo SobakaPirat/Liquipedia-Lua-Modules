@@ -9,6 +9,7 @@
 local Lua = require('Module:Lua')
 
 local Arguments = Lua.import('Module:Arguments')
+local Logic = Lua.import('Module:Logic')
 local Page = Lua.import('Module:Page')
 local Tabs = Lua.import('Module:Tabs')
 
@@ -78,7 +79,16 @@ function ProfileTabsController.run(first, frame)
 	local subpageName = ProfileTabsController._getSubpageName(profileType, pageName)
 	local profile = subpageName and pageName:sub(1, -#subpageName - 2) or pageName
 
-	local displayTitle = args.title or ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
+	-- Resolve the display title from the `displayTitle` arg:
+	-- - nil -> auto-generate from the subpage (e.g. "Twizzler: Results"),
+	-- - false -> restore the default page title (e.g. `{{...|displayTitle=false}}`),
+	-- - any other string -> use it as the custom title directly.
+	local displayTitle
+	if args.displayTitle == nil then
+		displayTitle = ProfileTabsController._getDisplayTitle(profileType, profile, subpageName)
+	elseif Logic.readBoolOrNil(args.displayTitle) ~= false then
+		displayTitle = args.displayTitle
+	end
 
 	Page.setDisplayTitle{
 		title = displayTitle,

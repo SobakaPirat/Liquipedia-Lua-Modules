@@ -4,6 +4,7 @@ describe('ProfileTabs Module', function()
 	local Controller = require('Module:Features/ProfileTabs/Controller')
 	local ProfileTabsTabs = require('Module:Features/ProfileTabs/Components/Tabs')
 	local PROFILE_TYPES = require('Module:Features/ProfileTabs/Types')
+	local Page = require('Module:Page')
 	local mockLpdb = require('Module:Mock/Lpdb')
 
 	local ProfileTabs = Controller
@@ -459,10 +460,43 @@ describe('ProfileTabs Module', function()
 				return {prefixedText = 'Twizzler/Results'}
 			end)
 			withExistingPages({'Twizzler/Results'}, function()
-				local result = ProfileTabs.run({title = 'Custom Title'})
+				local result = ProfileTabs.run({displayTitle = 'Custom Title'})
 				assert.is_not_nil(result)
 				local html = tostring(result)
 				assert.is_true(html:find('Twizzler/Results', nil, true) ~= nil)
+			end)
+		end)
+
+		it('should use a custom displayTitle string as the page title', function()
+			mockLpdb.setUp()
+			titleStub = stub(mw.title, 'getCurrentTitle', function()
+				return {prefixedText = 'Twizzler/Results'}
+			end)
+			withExistingPages({'Twizzler/Results'}, function()
+				local setTitleProps
+				stub(Page, 'setDisplayTitle', function(props)
+					setTitleProps = props
+				end)
+				local result = ProfileTabs.run({displayTitle = 'Custom Title'})
+				assert.is_not_nil(result)
+				assert.are.equal('Custom Title', setTitleProps.title)
+			end)
+		end)
+
+		it('should not set the auto display title when displayTitle is false', function()
+			mockLpdb.setUp()
+			titleStub = stub(mw.title, 'getCurrentTitle', function()
+				return {prefixedText = 'Twizzler/Results'}
+			end)
+			withExistingPages({'Twizzler/Results'}, function()
+				local setTitleProps
+				stub(Page, 'setDisplayTitle', function(props)
+					setTitleProps = props
+				end)
+				local result = ProfileTabs.run({displayTitle = 'false'})
+				assert.is_not_nil(result)
+				-- No automatic "Twizzler: Results" title is set
+				assert.is_nil(setTitleProps.title)
 			end)
 		end)
 
